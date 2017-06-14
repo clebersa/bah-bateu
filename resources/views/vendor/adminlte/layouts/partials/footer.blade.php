@@ -2,8 +2,8 @@
 <footer class="main-footer">
     <!-- To the right -->
     <div class="pull-right hidden-xs">
-        <a href="https://github.com/acacha/adminlte-laravel"></a><b>admin-lte-laravel</b></a>. {{ trans('adminlte_lang::message.descriptionpackage') }}
+        <b>bah-bateu</b> uses traffic accidents data publicly available at <a href="http://www.datapoa.com.br/dataset/acidentes-de-transito">datapoa</a>.
     </div>
     <!-- Default to the left -->
-    <strong>Copyright &copy; 2017 <a href="http://acacha.org">Acacha.org</a>.</strong> {{ trans('adminlte_lang::message.createdby') }} <a href="http://acacha.org/sergitur">Sergi Tur Badenas</a>. {{ trans('adminlte_lang::message.seecode') }} <a href="https://github.com/acacha/adminlte-laravel">Github</a>
+    {{ trans('adminlte_lang::message.createdby') }} <a href="https://github.com/clebersa">Cleber de Souza Alcântara</a>. {{ trans('adminlte_lang::message.seecode') }} <a href="https://github.com/clebersa/bah-bateu">Github</a>.
 </footer>
