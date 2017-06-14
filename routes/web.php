@@ -12,7 +12,7 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('adminlte::home');
 });
 
 Route::group(['middleware' => 'auth'], function () {
