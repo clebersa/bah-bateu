@@ -14,11 +14,14 @@ const { mix } = require('laravel-mix');
 mix.js('resources/assets/js/app.js', 'public/js')
    .js('resources/assets/js/app-landing.js', 'public/js/app-landing.js')
    .sass('resources/assets/sass/app.scss', 'public/css')
-   .less('node_modules/bootstrap-less/bootstrap/bootstrap.less', 'public/css/bootstrap.css')
+   .less('node_modules/bootstrap-less/bootstrap/bootstrap.less', 'public/css/bootstrap.css', {rootpath:"/bah-bateu/fonts/"})
+   .less('node_modules/font-awesome/less/font-awesome.less', 'public/css/font-awesome.css', {rootpath:"/bah-bateu/fonts/"})
    .less('resources/assets/less/adminlte-app.less','public/css/adminlte-app.css')
    .less('node_modules/toastr/toastr.less','public/css/toastr.css')
    .combine([
-       'public/css/app.css',
+        'url(https://fonts.googleapis.com/css?family=Raleway:300,400,600)',
+       'public/css/bootstrap.css',
+       'public/css/font-awesome.css',
        'node_modules/admin-lte/dist/css/skins/_all-skins.css',
        'public/css/adminlte-app.css',
        'node_modules/icheck/skins/square/blue.css',
