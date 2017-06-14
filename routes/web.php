@@ -12,5 +12,5 @@
 */
 
 Route::get('/', function () {
-    return view('adminlte::home');
+    return view('home');
 });
