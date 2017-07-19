@@ -6,6 +6,7 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 
 <script src="{{ url ('/js/overview-brush.js') }}" type="text/javascript"></script>
+<script src="{{ url ('/js/heatmap.js') }}" type="text/javascript"></script>
 
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
       Both of these plugins are recommended to enhance the
