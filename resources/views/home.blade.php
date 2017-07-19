@@ -6,7 +6,6 @@
 
 
 @section('main-content')
-<div class="text-center">
-<svg width="1260" height="250"></svg>
+<div class="text-center overview">
 </div>
 @endsection

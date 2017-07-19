@@ -1,6 +1,8 @@
 console.log("overview-brush");
 
-var svg = d3.select("svg"),
+var svg = d3.select("div .overview").append("svg")
+        .attr("width", 600)
+        .attr("height", 250),
         zoomedRangeMargin = {top: 90, right: 10, bottom: 20, left: 40},
         fullRangeMargin = {top: 10, right: 10, bottom: 190, left: 40},
         rangeWidth = +svg.attr("width") - zoomedRangeMargin.left - zoomedRangeMargin.right,
@@ -27,6 +29,14 @@ var zoom = d3.zoom()
         .translateExtent([[0, 0], [rangeWidth, zoomedRangeHeight]])
         .extent([[0, 0], [rangeWidth, zoomedRangeHeight]])
         .on("zoom", zoomed);
+
+var totalAccidentsLine = d3.line()
+        .x(function (d) {
+            return xZoomRange(d.date);
+        })
+        .y(function (d) {
+            return yZoomRange(d.price);
+        });
 
 var areaZoom = d3.area()
         .curve(d3.curveMonotoneX)
@@ -80,6 +90,16 @@ d3.csv("sp500.csv", type, function (error, data) {
             .attr("class", "area")
             .attr("d", areaZoom);
 
+    focus.append("path")
+            .datum(data)
+            .attr("class", "line")
+            .attr("fill", "none")
+            .attr("stroke", "red")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 1.5)
+            .attr("d", totalAccidentsLine);
+
     focus.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + zoomedRangeHeight + ")")
@@ -118,6 +138,7 @@ function brushed() {
     var s = d3.event.selection || xFullRange.range();
     xZoomRange.domain(s.map(xFullRange.invert, xFullRange));
     focus.select(".area").attr("d", areaZoom);
+    focus.select(".line").attr("d", totalAccidentsLine);
     focus.select(".axis--x").call(xAxisZoom);
     svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
             .scale(rangeWidth / (s[1] - s[0]))
@@ -130,6 +151,7 @@ function zoomed() {
     var t = d3.event.transform;
     xZoomRange.domain(t.rescaleX(xFullRange).domain());
     focus.select(".area").attr("d", areaZoom);
+    focus.select(".line").attr("d", totalAccidentsLine);
     focus.select(".axis--x").call(xAxisZoom);
     context.select(".brush").call(brush.move, xZoomRange.range().map(t.invertX, t));
 }
