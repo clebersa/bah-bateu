@@ -99,4 +99,16 @@ const heatmapChart = function (tsvFile) {
     });
 };
 
-heatmapChart(datasets[0]);
+$("#reloaderBtn").click(function(){
+    $.ajax({url: '/bah-bateu/',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'JSON',
+        success: function(result){
+            console.log("result");
+            console.log(result);
+            heatmapChart(datasets[0]);
+    }});
+});
