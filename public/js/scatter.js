@@ -20,41 +20,29 @@ g.append("rect")
         .attr("height", domainheight)
         .attr("fill", "#ffffff");
 
-d3.json("data.json", function (error, data) {
-    if (error)
-        throw error;
-
-    data.forEach(function (d) {
-        d.consequence = +d.consequence;
-        //d.value = +d.value;
-    });
-
+function buildScatterPlot(data){
     xRange.domain([0, d3.max(data, function (d) {
-            return d.consequence;
+            return d.amount;
         })]);
-    yRange.domain(['Some answer', 'Another answer', 'Third answer']);
+    yRange.domain(d3.map(data, function (d) {
+        return d.type;
+    }).keys());
 
     g.selectAll("circle")
             .data(data)
             .enter().append("circle")
             .attr("class", "dot")
             .attr("r", function (d) {
-                return d.value * 5;
+                return Math.log(d.accidents) + 3;
             })
             .attr("cx", function (d) {
-                return xRange(d.consequence);
+                return xRange(d.amount);
             })
             .attr("cy", function (d) {
-                return yRange(d.answer);
+                return yRange(d.type);
             })
             .style("fill", function (d) {
-                if (d.answer == "Another answer") {
-                    return "#60B19C"
-                } else if (d.answer == "Some answer") {
-                    return "#8EC9DC"
-                } else {
-                    return "#A72D73"
-                }
+                return "#A72D73";
             });
 
     g.append("g")
@@ -65,4 +53,19 @@ d3.json("data.json", function (error, data) {
     g.append("g")
             .attr("class", "y axis")
             .call(d3.axisLeft(yRange));
+}
+
+$("#reloaderBtn2").click(function(){
+    $.ajax({url: '/bah-bateu/',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            chart: 'scatter'
+        },
+        dataType: 'JSON',
+        success: function(result){
+            console.log(result);
+            buildScatterPlot(result);
+            //heatmapChart(result);
+    }});
 });

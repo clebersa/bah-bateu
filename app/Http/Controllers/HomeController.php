@@ -27,9 +27,16 @@ class HomeController extends Controller
         return view('home');
     }
     
-    public function getData(){
+    public function getData(Request $request){
         Log::info("loading data");
+        $chart = $request->input('chart');
         $generalDAO = new GeneralDAO();
-        return json_encode($generalDAO->getDataHeatmap());
+        if($chart == 'heatmap'){
+            $result = $generalDAO->getDataHeatmap();
+        } else if($chart == 'scatter'){
+            $result = $generalDAO->getScatterPlotData();
+        }
+        
+        return json_encode($result);
     }
 }

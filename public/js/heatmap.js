@@ -92,7 +92,8 @@ $("#reloaderBtn").click(function(){
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
-            _token: $('meta[name="csrf-token"]').attr('content')
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            chart: 'heatmap'
         },
         dataType: 'JSON',
         success: function(result){
