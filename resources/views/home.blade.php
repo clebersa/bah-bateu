@@ -8,7 +8,20 @@
 @section('main-content')
 check
 <div id="map"></div>
-point
+<div class="form-group">
+    <div class="radio">
+        <label>
+            <input type="radio" name="mapInfoRadios" id="heatmapRadio" value="heatmap">
+            Heatmap
+        </label>
+    </div>
+    <div class="radio">
+        <label>
+            <input type="radio" name="mapInfoRadios" id="pointsRadio" value="points">
+            Accident Points
+        </label>
+    </div>
+</div>
 <br/>
 <button class="btn btn-primary" id="reloaderBtn">Reload Data</button>
 <div class="text-center overview"></div>

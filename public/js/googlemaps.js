@@ -1,4 +1,4 @@
-var map, heatmap;
+var map, heatmap, markers, markerCluster, accidentsPoints;
 
 $.ajax({url: '/bah-bateu/',
     type: 'POST',
@@ -8,42 +8,70 @@ $.ajax({url: '/bah-bateu/',
     },
     dataType: 'JSON',
     success: function (result) {
-        maxLatitude = Math.max.apply(Math, result.map(function (coordinate) {
+        accidentsPoints = result;
+        maxLatitude = Math.max.apply(Math, accidentsPoints.map(function (coordinate) {
             return coordinate.latitude;
         }));
-        minLatitude = Math.min.apply(Math, result.map(function (coordinate) {
+        minLatitude = Math.min.apply(Math, accidentsPoints.map(function (coordinate) {
             return coordinate.latitude;
         }));
-        maxLongitude = Math.max.apply(Math, result.map(function (coordinate) {
+        maxLongitude = Math.max.apply(Math, accidentsPoints.map(function (coordinate) {
             return coordinate.longitude;
         }));
-        minLongitude = Math.min.apply(Math, result.map(function (coordinate) {
+        minLongitude = Math.min.apply(Math, accidentsPoints.map(function (coordinate) {
             return coordinate.longitude;
         }));
         centralLatitude = (maxLatitude + minLatitude) / 2;
         centralLongitude = (maxLongitude + minLongitude) / 2;
 
-        loadMap({lat: centralLatitude, lng: centralLongitude}, convertPoints(result));
+        loadMap({lat: centralLatitude, lng: centralLongitude}, convertPoints(accidentsPoints));
+        loadLayers();
+        $("#heatmapRadio").prop("checked", true).change();
     }});
 
+$("input[type=radio][name=mapInfoRadios]").change(function () {
+    console.log(this.value);
+    if (this.value === 'heatmap') {
+        markerCluster.clearMarkers();
+        heatmap.setMap(map);
+    } else {
+        heatmap.setMap(null); 
+        if(markerCluster.getMarkers().length === 0){
+            markerCluster.addMarkers(markers);
+            markerCluster.redraw();
+        }
+    }
+});
 function initMap() {
     loadMap({lat: -30.033056, lng: -51.23}, []);
 }
 
-function loadMap(center, points) {
+function loadMap(center) {
     map = new google.maps.Map(document.getElementById('map'), {
         zoom: 10,
         center: center,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
-    if (points.length !== 0) {
-        heatmap = new google.maps.visualization.HeatmapLayer({
-            data: points,
-            map: map,
-            opacity: 0.75
-        });
-    }
 }
+
+function loadLayers() {
+    heatmap = new google.maps.visualization.HeatmapLayer({
+        data: convertPoints(accidentsPoints),
+        map: map,
+        opacity: 0.75
+    });
+
+    markers = accidentsPoints.map(function (location, i) {
+        return new google.maps.Marker({
+            position: {lat: location.latitude, lng: location.longitude}
+        });
+    });
+
+    // Add a marker clusterer to manage the markers.
+    markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+}
+
 
 function convertPoints(accidents) {
     points = []
