@@ -23,7 +23,7 @@ g.append("rect")
 function buildScatterPlot(data) {
     xRange.domain([0, d3.max(data, function (d) {
             return d.amount;
-        }) + 0.5]);
+        }) + 0.2]);
     yDomain = d3.map(data, function (d) {
         return d.type;
     }).keys();
@@ -31,6 +31,18 @@ function buildScatterPlot(data) {
     yDomain.push(" ");
     yRange.domain(yDomain);
 
+    //Scales
+    var vehicleTypeScale = d3.scaleOrdinal()
+            .domain(yDomain)
+            .range(d3.schemeCategory20);
+    var totalAccidentsScaleLog = d3.scaleLog()
+            .domain(d3.extent(data, function (d) {
+                return d.accidents;
+            }))
+            .range([2, 15]);
+    var totalAccidentsScaleSqrt = d3.scaleSqrt()
+            .domain([2 / Math.PI, 15 / Math.PI])
+            .range([2, 15]);
 
     //Grid
     g.append("g")
@@ -62,7 +74,7 @@ function buildScatterPlot(data) {
             .enter().append("circle")
             .attr("class", "dot")
             .attr("r", function (d) {
-                return Math.log(d.accidents) + 2;
+                return totalAccidentsScaleSqrt(totalAccidentsScaleLog(d.accidents) / Math.PI);
             })
             .attr("cx", function (d) {
                 return xRange(d.amount);
@@ -71,7 +83,7 @@ function buildScatterPlot(data) {
                 return yRange(d.type);
             })
             .style("fill", function (d) {
-                return "#FF0000";
+                return vehicleTypeScale(d.type);
             });
 
 
@@ -86,8 +98,6 @@ $("#reloaderBtn2").click(function () {
         },
         dataType: 'JSON',
         success: function (result) {
-            console.log(result);
             buildScatterPlot(result);
-            //heatmapChart(result);
         }});
 });
