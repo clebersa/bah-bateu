@@ -40,7 +40,7 @@ const timeLabels = svg2.selectAll(".timeLabel")
 
 const heatmapChart = function (data) {
     const colorScale = d3.scaleQuantile()
-            .domain([d3.min(data, (d) => d.total), d3.max(data, (d) => d.total)])
+            .domain(d3.extent(data, (d) => d.total))
             .range(colors);
 
     const cards = svg2.selectAll(".hour")
