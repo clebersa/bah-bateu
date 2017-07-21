@@ -6,6 +6,10 @@
 
 
 @section('main-content')
+check
+<div id="map"></div>
+point
+<br/>
 <button class="btn btn-primary" id="reloaderBtn">Reload Data</button>
 <div class="text-center overview"></div>
 <div class="heatmap"></div>

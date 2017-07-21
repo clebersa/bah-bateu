@@ -35,6 +35,8 @@ class HomeController extends Controller
             $result = $generalDAO->getDataHeatmap();
         } else if($chart == 'scatter'){
             $result = $generalDAO->getScatterPlotData();
+        } else if($chart == 'googlemaps'){
+            $result = $generalDAO->getGeographicHeatmap();
         }
         
         return json_encode($result);
