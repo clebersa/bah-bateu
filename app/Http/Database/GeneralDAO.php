@@ -43,9 +43,13 @@ class GeneralDAO {
         Log::info(count($data) . " records retrieved for the scatter plot.");
         return $data;
     }
-    
-    public function getGeographicHeatmap(){
+
+    public function getGeographicHeatmap() {
         return DB::select("SELECT LATITUDE AS 'latitude', LONGITUDE AS 'longitude', COUNT(*) AS 'total' FROM `accidents` WHERE YEAR(MOMENTO) = '2010' GROUP BY LATITUDE, LONGITUDE");
+    }
+
+    public function getAccidentsByPosition($latitude, $longitude) {
+        return DB::select("SELECT ID AS 'id', LOCAL_VIA AS 'location', MOMENTO AS 'moment', BOLETIM AS 'report_id', CONSORCIO as `consortium` FROM `accidents` WHERE LATITUDE = '$latitude' AND LONGITUDE = '$longitude' ORDER BY MOMENTO");
     }
 
 }
