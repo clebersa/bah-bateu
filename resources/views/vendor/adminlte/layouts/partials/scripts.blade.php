@@ -5,9 +5,9 @@
 <script src="{{ url (mix('/js/app.js')) }}" type="text/javascript"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 
-<!--<script src="{{ url ('/js/overview-brush.js') }}" type="text/javascript"></script>
+<!--<script src="{{ url ('/js/overview-brush.js') }}" type="text/javascript"></script>-->
 <script src="{{ url ('/js/heatmap.js') }}" type="text/javascript"></script>
-<script src="{{ url ('/js/scatter.js') }}" type="text/javascript"></script>-->
+<script src="{{ url ('/js/scatter.js') }}" type="text/javascript"></script>
 <script src="{{ url ('/js/googlemaps.js') }}" type="text/javascript"></script>
 <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
 </script>

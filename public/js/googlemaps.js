@@ -112,7 +112,7 @@ function retrieveInfoWindowContent(latitude, longitude) {
             };
             if (accidentsInfo.length > 1) {
                 accidentInfoBoxTitle += '<div class="form-group no-margin form-inline">'
-                        + 'Accident: <select class="form-control" onchange="updateAccidentView($(this).find(\':selected\').val())">';
+                        + 'Accident: <select class="form-control" onchange="updateAccidentDetailsBox($(this).find(\':selected\').val())">';
                 $.each(accidentsInfo, function (index, accidentInfo) {
                     accidentInfoBoxTitle += '<option value="' + index + '">#' + (index + 1) + ' - ' + (new Date(accidentInfo.moment)
                             .toLocaleTimeString("en-us", dateOptions)) + '</option>';
