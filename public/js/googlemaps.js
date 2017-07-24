@@ -1,4 +1,4 @@
-var map, heatmap, markers, markerCluster, accidentsPoints;
+var map, heatmap, markers, markerCluster, accidentsPoints, infowindow;
 
 $.ajax({url: '/bah-bateu/',
     type: 'POST',
@@ -35,8 +35,8 @@ $("input[type=radio][name=mapInfoRadios]").change(function () {
         markerCluster.clearMarkers();
         heatmap.setMap(map);
     } else {
-        heatmap.setMap(null); 
-        if(markerCluster.getMarkers().length === 0){
+        heatmap.setMap(null);
+        if (markerCluster.getMarkers().length === 0) {
             markerCluster.addMarkers(markers);
             markerCluster.redraw();
         }
@@ -62,16 +62,29 @@ function loadLayers() {
     });
 
     markers = accidentsPoints.map(function (location, i) {
-        return new google.maps.Marker({
+        var marker = new google.maps.Marker({
             position: {lat: location.latitude, lng: location.longitude}
         });
+        marker.addListener('click', function () {
+            if (typeof infowindow !== 'undefined') {
+                infowindow.close();
+            }
+            infowindow = new google.maps.InfoWindow({
+                content: generateInfoWindowContent(location.latitude, location.longitude)
+            });
+            infowindow.open(map, marker);
+        });
+        return marker;
     });
 
     // Add a marker clusterer to manage the markers.
     markerCluster = new MarkerClusterer(map, markers,
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 }
-
+function generateInfoWindowContent(latitude, longitude) {
+    
+    return 'test';
+}
 
 function convertPoints(accidents) {
     points = []

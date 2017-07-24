@@ -45,7 +45,7 @@ class GeneralDAO {
     }
     
     public function getGeographicHeatmap(){
-        return DB::select("SELECT LATITUDE AS 'latitude', LONGITUDE AS 'longitude', COUNT(*) AS 'total'FROM `accidents` WHERE YEAR(MOMENTO) = '2010' GROUP BY LATITUDE, LONGITUDE");
+        return DB::select("SELECT LATITUDE AS 'latitude', LONGITUDE AS 'longitude', COUNT(*) AS 'total' FROM `accidents` WHERE YEAR(MOMENTO) = '2010' GROUP BY LATITUDE, LONGITUDE");
     }
 
 }
