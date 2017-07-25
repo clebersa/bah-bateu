@@ -1,5 +1,5 @@
 function WeekDayTimeHeatmap() {
-    this.margin = {top: 30, right: 0, bottom: 60, left: 25};
+    this.margin = {top: 40, right: 0, bottom: 60, left: 25};
     this.chartData = null;
 
     var self = this;
@@ -22,6 +22,8 @@ function WeekDayTimeHeatmap() {
             self.loadData();
         }
     });
+    
+    $('div .heatmap').height(250);
 }
 
 WeekDayTimeHeatmap.prototype.drawBase = function () {

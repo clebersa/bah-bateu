@@ -1,5 +1,5 @@
 function VehicleScatterPlot() {
-    this.margin = {top: 10, right: 2, bottom: 10, left: 45};
+    this.margin = {top: 10, right: 2, bottom: 15, left: 45};
     this.chartData = null;
 
     var self = this;
@@ -22,6 +22,8 @@ function VehicleScatterPlot() {
             self.loadData();
         }
     });
+    
+    $('div .scatter').height(300);
 }
 
 VehicleScatterPlot.prototype.drawBase = function () {
