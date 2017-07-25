@@ -109,7 +109,7 @@ VehicleScatterPlot.prototype.loadData = function () {
             .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]));
 
     //Data
-    self = this;
+    var self = this;
     this.g.selectAll("circle")
             .data(this.chartData)
             .enter().append("circle")

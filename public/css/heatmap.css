@@ -5,14 +5,15 @@ rect.bordered {
 
 text.mono {
     font-size: 9pt;
-    font-family: Consolas, courier;
-    fill: #aaa;
+    fill: #555;
 }
 
 text.axis-workweek {
     fill: #000;
+    font-weight: bold;
 }
 
 text.axis-worktime {
     fill: #000;
+    font-weight: bold;
 }

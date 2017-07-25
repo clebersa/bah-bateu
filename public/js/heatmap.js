@@ -1,5 +1,5 @@
 function WeekDayTimeHeatmap() {
-    this.margin = {top: 20, right: 0, bottom: 100, left: 30};
+    this.margin = {top: 30, right: 0, bottom: 60, left: 25};
     this.chartData = null;
 
     var self = this;
@@ -25,9 +25,9 @@ function WeekDayTimeHeatmap() {
 }
 
 WeekDayTimeHeatmap.prototype.drawBase = function () {
-    const minWidth = 350;
+    const minWidth = 400;
     const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    const times = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"];
+    const times = ["12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12p", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p"];
 
     if ($('div .heatmap').width() < minWidth) {
         $('div .heatmap').addClass('pre-scrollable');
@@ -35,43 +35,57 @@ WeekDayTimeHeatmap.prototype.drawBase = function () {
     } else {
         $('div .heatmap').removeClass('pre-scrollable');
     }
-    var widthHeatmap = Math.max($('div .heatmap').width(), minWidth) - this.margin.left - this.margin.right
+    this.widthHeatmap = Math.max($('div .heatmap').width(), minWidth) - this.margin.left - this.margin.right
     this.heightHeatmap = $('div .heatmap').height() - this.margin.top - this.margin.bottom;
-    this.domainwidth = widthHeatmap - this.margin.left - this.margin.right;
+    this.domainwidth = this.widthHeatmap - this.margin.left - this.margin.right;
     this.domainheight = this.heightHeatmap - this.margin.top - this.margin.bottom;
 
     $('div .heatmap').children().remove();
 
     this.svgHeatmap = d3.select("div .heatmap").append("svg")
-            .attr("width", widthHeatmap + this.margin.left + this.margin.right)
+            .attr("width", this.widthHeatmap + this.margin.left + this.margin.right)
             .attr("height", this.heightHeatmap + this.margin.top + this.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    this.gridSize = Math.floor(widthHeatmap / 24);
-    this.legendElementWidth = this.gridSize * 2;
+    this.gridSizeX = this.widthHeatmap / 24;
+    this.gridSizeY = this.heightHeatmap / 7;
 
-    var dayLabels = this.svgHeatmap.selectAll(".dayLabel")
+    this.svgHeatmap.selectAll(".dayLabel")
             .data(days)
             .enter().append("text")
             .text(function (d) {
                 return d;
             })
             .attr("x", 0)
-            .attr("y", (d, i) => i * this.gridSize)
+            .attr("y", (d, i) => i * this.gridSizeY)
             .style("text-anchor", "end")
-            .attr("transform", "translate(-6," + this.gridSize / 1.5 + ")")
+            .attr("transform", "translate(-6," + this.gridSizeY / 1.5 + ")")
             .attr("class", (d, i) => ((i >= 1 && i <= 5) ? "dayLabel mono axis axis-workweek" : "dayLabel mono axis"));
 
-    var timeLabels = this.svgHeatmap.selectAll(".timeLabel")
-            .data(times)
+    var self = this;
+    this.svgHeatmap.selectAll(".timeLabel")
+            .data(times.map(function (time, index) {
+                return (self.widthHeatmap > 600 || index % 2 === 0) ? time : '';
+            }))
             .enter().append("text")
             .text((d) => d)
-            .attr("x", (d, i) => i * this.gridSize)
+            .attr("x", (d, i) => i * this.gridSizeX)
             .attr("y", 0)
             .style("text-anchor", "middle")
-            .attr("transform", "translate(" + this.gridSize / 2 + ", -6)")
+            .attr("transform", "translate(" + this.gridSizeX / 2 + ", -6)")
             .attr("class", (d, i) => ((i >= 6 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"));
+    this.svgHeatmap.selectAll(".periodLabel")
+            .data(times.map(function (time, index) {
+                return (self.widthHeatmap > 600 || index % 2 === 0) ? ((index < 6 || index > 17) ? '🌙' : '⛭') : '';
+            }))
+            .enter().append("text")
+            .text((d) => d)
+            .attr("x", (d, i) => i * this.gridSizeX)
+            .attr("y", 0)
+            .style("text-anchor", "middle")
+            .attr("transform", "translate(" + this.gridSizeX / 2 + ", -20)")
+            .attr("class", (d, i) => ((i >= 6 && i <= 17) ? "periodLabel mono axis axis-worktime" : "timeLabel mono axis"));
     return true;
 }
 
@@ -80,7 +94,7 @@ WeekDayTimeHeatmap.prototype.loadData = function () {
         return;
 
     const colors = ["#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"]
-    const colorScaleHeatmap = d3.scaleQuantile()
+    const colorScale = d3.scaleQuantile()
             .domain(d3.extent(this.chartData, (d) => d.total))
             .range(colors);
     const cardsHeatmap = this.svgHeatmap.selectAll(".hour")
@@ -89,41 +103,43 @@ WeekDayTimeHeatmap.prototype.loadData = function () {
     cardsHeatmap.append("title");
 
     cardsHeatmap.enter().append("rect")
-            .attr("x", (d) => (d.hour) * this.gridSize)
-            .attr("y", (d) => (d.dow - 1) * this.gridSize)
+            .attr("x", (d) => (d.hour) * this.gridSizeX)
+            .attr("y", (d) => (d.dow - 1) * this.gridSizeY)
             .attr("rx", 4)
             .attr("ry", 4)
             .attr("class", "hour bordered")
-            .attr("width", this.gridSize)
-            .attr("height", this.gridSize)
+            .attr("width", this.gridSizeX)
+            .attr("height", this.gridSizeY)
             .style("fill", colors[0])
             .merge(cardsHeatmap)
             .transition()
             .duration(1000)
-            .style("fill", (d) => colorScaleHeatmap(d.total));
+            .style("fill", (d) => colorScale(d.total));
 
     cardsHeatmap.select("title").text((d) => d.total);
 
     cardsHeatmap.exit().remove();
 
     const legend = this.svgHeatmap.selectAll(".legend")
-            .data([0].concat(colorScaleHeatmap.quantiles()), (d) => d);
+            .data([0].concat(colorScale.quantiles()), (d) => d);
 
     const legend_g = legend.enter().append("g")
             .attr("class", "legend");
 
+    var legendWidth = this.widthHeatmap / colors.length;
     legend_g.append("rect")
-            .attr("x", (d, i) => this.legendElementWidth * i)
+            .attr("x", (d, i) => legendWidth * i)
             .attr("y", this.heightHeatmap)
-            .attr("width", this.legendElementWidth)
-            .attr("height", this.gridSize / 2)
+            .attr("width", legendWidth)
+            .attr("height", this.gridSizeY / 2)
+            .attr("transform", "translate(0, 30)")
             .style("fill", (d, i) => colors[i]);
 
     legend_g.append("text")
             .attr("class", "mono")
             .text((d) => "≥ " + Math.round(d))
-            .attr("x", (d, i) => this.legendElementWidth * i)
-            .attr("y", this.heightHeatmap + this.gridSize);
+            .attr("x", (d, i) => legendWidth * i)
+            .attr("y", this.heightHeatmap + this.gridSizeY);
 
     legend.exit().remove();
 }
