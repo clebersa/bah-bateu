@@ -1,71 +1,82 @@
-console.log("scatter");
+function VehicleScatterPlot() {
+    this.margin = {top: 10, right: 2, bottom: 10, left: 45};
+    this.minWidth = 350;
+    this.chartData = null;
+    
+    self = this;
+    $("#reloaderBtn2").click(function () {
+        $.ajax({url: '/bah-bateu/',
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                chart: 'scatter'
+            },
+            dataType: 'JSON',
+            success: function (result) {
+                self.chartData = result;
+                self.loadData();
+            }});
+    });
 
-var marginScatter = {top: 10, right: 2, bottom: 10, left: 45},
-        minWidth = 350,
-        widthScatter,
-        heightScatter,
-        domainwidth,
-        domainheight,
-        svg,
-        xRange,
-        yRange,
-        g, scatterPlotData = null;
+    new ResizeSensor(jQuery('div .scatterContainer'), function () {
+        if (self.drawBase()) {
+            self.loadData();
+        }
+    });
+}
 
-function drawScatterPlot() {
-    console.log('redrawing');
-    console.log('width: ' + $('div .scatter').width());
-    if ($('div .scatter').width() < minWidth) {
+VehicleScatterPlot.prototype.drawBase = function () {
+    console.log('drawing base of vehicle scatter plot');
+    if ($('div .scatter').width() < this.minWidth) {
         $('div .scatter').addClass('pre-scrollable');
         return false;
     } else {
         $('div .scatter').removeClass('pre-scrollable');
     }
-    widthScatter = Math.max($('div .scatter').width(), minWidth) - marginScatter.left - marginScatter.right;
-    heightScatter = $('div .scatter').height() - marginScatter.top - marginScatter.bottom;
-    domainwidth = widthScatter - marginScatter.left - marginScatter.right;
-    domainheight = heightScatter - marginScatter.top - marginScatter.bottom;
+    var chartWidth = Math.max($('div .scatter').width(), this.minWidth) - this.margin.left - this.margin.right;
+    var chartHeight = $('div .scatter').height() - this.margin.top - this.margin.bottom;
+    this.domainWidth = chartWidth - this.margin.left - this.margin.right;
+    this.domainHeight = chartHeight - this.margin.top - this.margin.bottom;
 
     $('div .scatter').children().remove();
 
-    svg = d3.select("div .scatter").append("svg")
-            .attr("width", widthScatter + marginScatter.left + marginScatter.right)
-            .attr("height", heightScatter + marginScatter.top + marginScatter.bottom)
+    this.svg = d3.select("div .scatter").append("svg")
+            .attr("width", chartWidth + this.margin.left + this.margin.right)
+            .attr("height", chartHeight + this.margin.top + this.margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    xRange = d3.scaleLinear().range([0, domainwidth]);
-    yRange = d3.scalePoint().range([domainheight, 0]);
+    this.xRange = d3.scaleLinear().range([0, this.domainWidth]);
+    this.yRange = d3.scalePoint().range([this.domainHeight, 0]);
 
-    g = svg.append("g")
-            .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
-    g.append("rect")
-            .attr("width", domainwidth)
-            .attr("height", domainheight)
+    this.g = this.svg.append("g")
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+    this.g.append("rect")
+            .attr("width", this.domainWidth)
+            .attr("height", this.domainHeight)
             .attr("fill", "#ffffff");
     return true;
 }
 
-drawScatterPlot();
-
-function buildScatterPlot() {
-    if (scatterPlotData === null)
+VehicleScatterPlot.prototype.loadData = function () {
+    if (this.chartData === null)
         return;
-    xRange.domain([0, d3.max(scatterPlotData, function (d) {
+    this.xRange.domain([0, d3.max(this.chartData, function (d) {
             return d.amount;
         }) + 0.2]);
-    yDomain = d3.map(scatterPlotData, function (d) {
+    var yDomain = d3.map(this.chartData, function (d) {
         return d.type;
     }).keys();
     yDomain.unshift("");
     yDomain.push(" ");
-    yRange.domain(yDomain);
+    this.yRange.domain(yDomain);
 
     //Scales
     var vehicleTypeScale = d3.scaleOrdinal()
             .domain(yDomain)
             .range(d3.schemeCategory20);
     var totalAccidentsScaleLog = d3.scaleLog()
-            .domain(d3.extent(scatterPlotData, function (d) {
+            .domain(d3.extent(this.chartData, function (d) {
                 return d.accidents;
             }))
             .range([2, 15]);
@@ -74,66 +85,48 @@ function buildScatterPlot() {
             .range([2, 15]);
 
     //Grid
-    g.append("g")
+    this.g.append("g")
             .attr("class", "grid")
-            .call(d3.axisLeft(yRange)
-                    .tickSize(-domainwidth)
+            .call(d3.axisLeft(this.yRange)
+                    .tickSize(-this.domainWidth)
                     .tickFormat("")
                     );
-    g.append("g")
+    this.g.append("g")
             .attr("class", "grid")
-            .call(d3.axisBottom(xRange)
-                    .ticks(xRange.domain()[1])
-                    .tickSize(domainheight)
+            .call(d3.axisBottom(this.xRange)
+                    .ticks(this.xRange.domain()[1])
+                    .tickSize(this.domainHeight)
                     .tickFormat("")
                     );
 
     //Axes
-    g.append("g")
+    this.g.append("g")
             .attr("class", "y axis")
-            .call(d3.axisLeft(yRange));
-    g.append("g")
+            .call(d3.axisLeft(this.yRange));
+    this.g.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + domainheight + ")")
-            .call(d3.axisBottom(xRange).ticks(xRange.domain()[1]));
+            .attr("transform", "translate(0," + this.domainHeight + ")")
+            .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]));
 
     //Data
-    g.selectAll("circle")
-            .data(scatterPlotData)
+    self = this;
+    this.g.selectAll("circle")
+            .data(this.chartData)
             .enter().append("circle")
             .attr("class", "dot")
             .attr("r", function (d) {
                 return totalAccidentsScaleSqrt(totalAccidentsScaleLog(d.accidents) / Math.PI);
             })
             .attr("cx", function (d) {
-                return xRange(d.amount);
+                return self.xRange(d.amount);
             })
             .attr("cy", function (d) {
-                return yRange(d.type);
+                return self.yRange(d.type);
             })
             .style("fill", function (d) {
                 return vehicleTypeScale(d.type);
             });
-
-
 }
 
-$("#reloaderBtn2").click(function () {
-    $.ajax({url: '/bah-bateu/',
-        type: 'POST',
-        data: {
-            _token: $('meta[name="csrf-token"]').attr('content'),
-            chart: 'scatter'
-        },
-        dataType: 'JSON',
-        success: function (result) {
-            scatterPlotData = result;
-            buildScatterPlot();
-        }});
-});
-
-new ResizeSensor(jQuery('div .scatterContainer'), function () {
-    if (drawScatterPlot()) {
-        buildScatterPlot();
-    }
-});
+var vehicleScatterPlot = new VehicleScatterPlot();
+vehicleScatterPlot.drawBase();
