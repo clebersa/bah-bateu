@@ -1,9 +1,8 @@
 function VehicleScatterPlot() {
     this.margin = {top: 10, right: 2, bottom: 10, left: 45};
-    this.minWidth = 350;
     this.chartData = null;
-    
-    self = this;
+
+    var self = this;
     $("#reloaderBtn2").click(function () {
         $.ajax({url: '/bah-bateu/',
             type: 'POST',
@@ -26,14 +25,15 @@ function VehicleScatterPlot() {
 }
 
 VehicleScatterPlot.prototype.drawBase = function () {
-    console.log('drawing base of vehicle scatter plot');
-    if ($('div .scatter').width() < this.minWidth) {
+    const minWidth = 350;
+
+    if ($('div .scatter').width() < minWidth) {
         $('div .scatter').addClass('pre-scrollable');
         return false;
     } else {
         $('div .scatter').removeClass('pre-scrollable');
     }
-    var chartWidth = Math.max($('div .scatter').width(), this.minWidth) - this.margin.left - this.margin.right;
+    var chartWidth = Math.max($('div .scatter').width(), minWidth) - this.margin.left - this.margin.right;
     var chartHeight = $('div .scatter').height() - this.margin.top - this.margin.bottom;
     this.domainWidth = chartWidth - this.margin.left - this.margin.right;
     this.domainHeight = chartHeight - this.margin.top - this.margin.bottom;
