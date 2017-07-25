@@ -2,6 +2,8 @@ var map, heatmap, markers, markerCluster, accidentsPoints, infoWindow, accidents
 
 var accidentInfoBoxDefaultTitle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 var accidentInfoBoxDefaultBody = "<br/><br/><br/>";
+
+$("#map").height(300);
 $.ajax({url: '/bah-bateu/',
     type: 'POST',
     data: {
@@ -28,26 +30,31 @@ $.ajax({url: '/bah-bateu/',
         centralLongitude = (maxLongitude + minLongitude) / 2;
         loadMap({lat: centralLatitude, lng: centralLongitude}, convertPoints(accidentsPoints));
         loadLayers();
-        $("#heatmapRadio").prop("checked", true).change();
+        $("#heatMapButton").click();
     },
-    error: function(result){
+    error: function (result) {
         console.log("error for google maps");
         console.log(result);
     }
 });
-$("input[type=radio][name=mapInfoRadios]").change(function () {
-    console.log(this.value);
-    if (this.value === 'heatmap') {
-        markerCluster.clearMarkers();
-        heatmap.setMap(map);
-    } else {
-        heatmap.setMap(null);
-        if (markerCluster.getMarkers().length === 0) {
-            markerCluster.addMarkers(markers);
-            markerCluster.redraw();
-        }
+
+function showHeatMap() {
+    $("#pointsButton").removeClass("text-bold");
+    $("#heatMapButton").addClass("text-bold");
+    markerCluster.clearMarkers();
+    heatmap.setMap(map);
+}
+
+function showPoints() {
+    $("#heatMapButton").removeClass("text-bold");
+    $("#pointsButton").addClass("text-bold");
+    heatmap.setMap(null);
+    if (markerCluster.getMarkers().length === 0) {
+        markerCluster.addMarkers(markers);
+        markerCluster.redraw();
     }
-});
+}
+
 function initMap() {
     loadMap({lat: -30.033056, lng: -51.23}, []);
 }

@@ -31,21 +31,11 @@
                 <div class="scatter col-lg-12" style="height: 300px;padding-bottom: 20px"></div>
             </div>
             <div class="col-lg-12" style="border-style: solid;">
-                <div id="map"></div>
-                <div class="form-group">
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="mapInfoRadios" id="heatmapRadio" value="heatmap">
-                            Heatmap
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="mapInfoRadios" id="pointsRadio" value="points">
-                            Accident Points
-                        </label>
-                    </div>
+                <div class="floating-panel btn-group text-center">
+                    <button id="pointsButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;" onclick="showPoints()">Points</button>
+                    <button id="heatMapButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;" onclick="showHeatMap()">Heatmap</button>
                 </div>
+                <div id="map"></div>
             </div>
         </div>
     </div>

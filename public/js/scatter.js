@@ -14,7 +14,7 @@ var marginScatter = {top: 10, right: 2, bottom: 10, left: 45},
 function drawScatterPlot() {
     console.log('redrawing');
     console.log('width: ' + $('div .scatter').width());
-    if($('div .scatter').width() < minWidth){
+    if ($('div .scatter').width() < minWidth) {
         $('div .scatter').addClass('pre-scrollable');
         return false;
     } else {
@@ -48,7 +48,8 @@ function drawScatterPlot() {
 drawScatterPlot();
 
 function buildScatterPlot() {
-    if(scatterPlotData === null) return;
+    if (scatterPlotData === null)
+        return;
     xRange.domain([0, d3.max(scatterPlotData, function (d) {
             return d.amount;
         }) + 0.2]);
@@ -132,7 +133,7 @@ $("#reloaderBtn2").click(function () {
 });
 
 new ResizeSensor(jQuery('div .scatterContainer'), function () {
-    if(drawScatterPlot()){
+    if (drawScatterPlot()) {
         buildScatterPlot();
     }
 });
