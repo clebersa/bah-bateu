@@ -18,9 +18,9 @@
             <div class="col-lg-12" style="height: 250px;border-style: solid;">
                 Parallel Sets
             </div>
-            <div class="col-lg-12" style="border-style: solid;">
-                <div class="heatmap"></div>
+            <div class="col-lg-12 heatmapContainer" style="border-style: solid;">
                 <button class="btn btn-primary" id="reloaderBtn">Reload Data</button>
+                <div class="heatmap col-lg-12" style="height: 300px;"></div>
             </div>
         </div>
     </div>
