@@ -1,7 +1,7 @@
 console.log("categories");
 
 const margin = {top: 20, right: 0, bottom: 100, left: 30},
-        width = 800 - margin.left - margin.right,
+        width = 600 - margin.left - margin.right,
         height = 430 - margin.top - margin.bottom,
         gridSize = Math.floor(width / 24),
         legendElementWidth = gridSize * 2,

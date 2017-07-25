@@ -1,11 +1,16 @@
 console.log("scatter");
 
-var svg = d3.select("#scatter"),
-        marginScatter = {top: 20, right: 20, bottom: 30, left: 85},
-        widthScatter = +svg.attr("width"),
-        heightScatter = +svg.attr("height"),
+var marginScatter = {top: 10, right: 0, bottom: 10, left: 45},
+        widthScatter = 700 - marginScatter.left - marginScatter.right,
+        heightScatter = 300 - marginScatter.top - marginScatter.bottom,
         domainwidth = widthScatter - marginScatter.left - marginScatter.right,
         domainheight = heightScatter - marginScatter.top - marginScatter.bottom;
+
+var svg = d3.select("div .scatter").append("svg")
+        .attr("width", widthScatter + marginScatter.left + marginScatter.right)
+        .attr("height", heightScatter + marginScatter.top + marginScatter.bottom)
+        .append("g")
+        .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
 
 var xRange = d3.scaleLinear()
         .range([0, domainwidth]);
