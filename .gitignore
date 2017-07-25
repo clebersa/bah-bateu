@@ -1,7 +1,5 @@
 /node_modules
 /public
-!/public/js/overview-brush.js
-!/public/css/overview-brush.css
 /storage
 /vendor
 /.idea
