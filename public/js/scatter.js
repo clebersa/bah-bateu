@@ -1,35 +1,58 @@
 console.log("scatter");
 
-var marginScatter = {top: 10, right: 0, bottom: 10, left: 45},
-        widthScatter = 700 - marginScatter.left - marginScatter.right,
-        heightScatter = 300 - marginScatter.top - marginScatter.bottom,
-        domainwidth = widthScatter - marginScatter.left - marginScatter.right,
-        domainheight = heightScatter - marginScatter.top - marginScatter.bottom;
+var marginScatter = {top: 10, right: 2, bottom: 10, left: 45},
+        minWidth = 350,
+        widthScatter,
+        heightScatter,
+        domainwidth,
+        domainheight,
+        svg,
+        xRange,
+        yRange,
+        g, scatterPlotData = null;
 
-var svg = d3.select("div .scatter").append("svg")
-        .attr("width", widthScatter + marginScatter.left + marginScatter.right)
-        .attr("height", heightScatter + marginScatter.top + marginScatter.bottom)
-        .append("g")
-        .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
+function drawScatterPlot() {
+    console.log('redrawing');
+    console.log('width: ' + $('div .scatter').width());
+    if($('div .scatter').width() < minWidth){
+        $('div .scatter').addClass('pre-scrollable');
+        return false;
+    } else {
+        $('div .scatter').removeClass('pre-scrollable');
+    }
+    widthScatter = Math.max($('div .scatter').width(), minWidth) - marginScatter.left - marginScatter.right;
+    heightScatter = $('div .scatter').height() - marginScatter.top - marginScatter.bottom;
+    domainwidth = widthScatter - marginScatter.left - marginScatter.right;
+    domainheight = heightScatter - marginScatter.top - marginScatter.bottom;
 
-var xRange = d3.scaleLinear()
-        .range([0, domainwidth]);
-var yRange = d3.scalePoint()
-        .range([domainheight, 0]);
+    $('div .scatter').children().remove();
 
-var g = svg.append("g")
-        .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
+    svg = d3.select("div .scatter").append("svg")
+            .attr("width", widthScatter + marginScatter.left + marginScatter.right)
+            .attr("height", heightScatter + marginScatter.top + marginScatter.bottom)
+            .append("g")
+            .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
 
-g.append("rect")
-        .attr("width", domainwidth)
-        .attr("height", domainheight)
-        .attr("fill", "#ffffff");
+    xRange = d3.scaleLinear().range([0, domainwidth]);
+    yRange = d3.scalePoint().range([domainheight, 0]);
 
-function buildScatterPlot(data) {
-    xRange.domain([0, d3.max(data, function (d) {
+    g = svg.append("g")
+            .attr("transform", "translate(" + marginScatter.left + "," + marginScatter.top + ")");
+    g.append("rect")
+            .attr("width", domainwidth)
+            .attr("height", domainheight)
+            .attr("fill", "#ffffff");
+    return true;
+}
+
+drawScatterPlot();
+
+function buildScatterPlot() {
+    if(scatterPlotData === null) return;
+    xRange.domain([0, d3.max(scatterPlotData, function (d) {
             return d.amount;
         }) + 0.2]);
-    yDomain = d3.map(data, function (d) {
+    yDomain = d3.map(scatterPlotData, function (d) {
         return d.type;
     }).keys();
     yDomain.unshift("");
@@ -41,7 +64,7 @@ function buildScatterPlot(data) {
             .domain(yDomain)
             .range(d3.schemeCategory20);
     var totalAccidentsScaleLog = d3.scaleLog()
-            .domain(d3.extent(data, function (d) {
+            .domain(d3.extent(scatterPlotData, function (d) {
                 return d.accidents;
             }))
             .range([2, 15]);
@@ -75,7 +98,7 @@ function buildScatterPlot(data) {
 
     //Data
     g.selectAll("circle")
-            .data(data)
+            .data(scatterPlotData)
             .enter().append("circle")
             .attr("class", "dot")
             .attr("r", function (d) {
@@ -103,6 +126,13 @@ $("#reloaderBtn2").click(function () {
         },
         dataType: 'JSON',
         success: function (result) {
-            buildScatterPlot(result);
+            scatterPlotData = result;
+            buildScatterPlot();
         }});
+});
+
+new ResizeSensor(jQuery('div .scatterContainer'), function () {
+    if(drawScatterPlot()){
+        buildScatterPlot();
+    }
 });
