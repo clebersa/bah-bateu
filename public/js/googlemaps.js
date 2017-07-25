@@ -10,6 +10,7 @@ $.ajax({url: '/bah-bateu/',
     },
     dataType: 'JSON',
     success: function (result) {
+        console.log("success for google maps");
         accidentsPoints = result;
         maxLatitude = Math.max.apply(Math, accidentsPoints.map(function (coordinate) {
             return coordinate.latitude;
@@ -28,7 +29,12 @@ $.ajax({url: '/bah-bateu/',
         loadMap({lat: centralLatitude, lng: centralLongitude}, convertPoints(accidentsPoints));
         loadLayers();
         $("#heatmapRadio").prop("checked", true).change();
-    }});
+    },
+    error: function(result){
+        console.log("error for google maps");
+        console.log(result);
+    }
+});
 $("input[type=radio][name=mapInfoRadios]").change(function () {
     console.log(this.value);
     if (this.value === 'heatmap') {
