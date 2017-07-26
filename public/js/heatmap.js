@@ -37,7 +37,7 @@ WeekDayTimeHeatmap.prototype.drawBase = function () {
     } else {
         $('div .heatmap').removeClass('pre-scrollable');
     }
-    this.widthHeatmap = Math.max($('div .heatmap').width(), minWidth) - this.margin.left - this.margin.right
+    this.widthHeatmap = Math.max($('div .heatmap').width(), minWidth) - this.margin.left - this.margin.right;
     this.heightHeatmap = $('div .heatmap').height() - this.margin.top - this.margin.bottom;
     this.domainwidth = this.widthHeatmap - this.margin.left - this.margin.right;
     this.domainheight = this.heightHeatmap - this.margin.top - this.margin.bottom;

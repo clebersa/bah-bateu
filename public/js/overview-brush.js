@@ -1,163 +1,180 @@
-console.log("overview-brush");
-
-var svg = d3.select("div .overview").append("svg")
-        .attr("width", 600)
-        .attr("height", 250),
-        zoomedRangeMargin = {top: 90, right: 10, bottom: 20, left: 40},
-        fullRangeMargin = {top: 10, right: 10, bottom: 190, left: 40},
-        rangeWidth = +svg.attr("width") - zoomedRangeMargin.left - zoomedRangeMargin.right,
-        zoomedRangeHeight = +svg.attr("height") - zoomedRangeMargin.top - zoomedRangeMargin.bottom,
-        fullRangeHeight = +svg.attr("height") - fullRangeMargin.top - fullRangeMargin.bottom;
-
-var parseDate = d3.timeParse("%b %Y");
-
-var xZoomRange = d3.scaleTime().range([0, rangeWidth]),
-        xFullRange = d3.scaleTime().range([0, rangeWidth]),
-        yZoomRange = d3.scaleLinear().range([zoomedRangeHeight, 0]),
-        yFullRange = d3.scaleLinear().range([fullRangeHeight, 0]);
-
-var xAxisZoom = d3.axisBottom(xZoomRange),
-        xAxisFull = d3.axisBottom(xFullRange),
-        yAxisZoom = d3.axisLeft(yZoomRange);
-
-var brush = d3.brushX()
-        .extent([[0, 0], [rangeWidth, fullRangeHeight]])
-        .on("brush end", brushed);
-
-var zoom = d3.zoom()
-        .scaleExtent([1, Infinity])
-        .translateExtent([[0, 0], [rangeWidth, zoomedRangeHeight]])
-        .extent([[0, 0], [rangeWidth, zoomedRangeHeight]])
-        .on("zoom", zoomed);
-
-var totalAccidentsLine = d3.line()
-        .x(function (d) {
-            return xZoomRange(d.date);
-        })
-        .y(function (d) {
-            return yZoomRange(d.price);
-        });
-
-var areaZoom = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x(function (d) {
-            return xZoomRange(d.date);
-        })
-        .y0(zoomedRangeHeight)
-        .y1(function (d) {
-            return yZoomRange(d.price);
-        });
-
-var areaFull = d3.area()
-        .curve(d3.curveMonotoneX)
-        .x(function (d) {
-            return xFullRange(d.date);
-        })
-        .y0(fullRangeHeight)
-        .y1(function (d) {
-            return yFullRange(d.price);
-        });
-
-svg.append("defs").append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", rangeWidth)
-        .attr("height", zoomedRangeHeight);
-
-var focus = svg.append("g")
-        .attr("class", "focus")
-        .attr("transform", "translate(" + zoomedRangeMargin.left + "," + zoomedRangeMargin.top + ")");
-
-var context = svg.append("g")
-        .attr("class", "context")
-        .attr("transform", "translate(" + fullRangeMargin.left + "," + fullRangeMargin.top + ")");
-
-d3.csv("sp500.csv", type, function (error, data) {
-    if (error)
-        throw error;
-
-    xZoomRange.domain(d3.extent(data, function (d) {
-        return d.date;
-    }));
-    yZoomRange.domain([0, d3.max(data, function (d) {
-            return d.price;
-        })]);
-    xFullRange.domain(xZoomRange.domain());
-    yFullRange.domain(yZoomRange.domain());
-
-    focus.append("path")
-            .datum(data)
-            .attr("class", "area")
-            .attr("d", areaZoom);
-
-    focus.append("path")
-            .datum(data)
-            .attr("class", "line")
-            .attr("fill", "none")
-            .attr("stroke", "red")
-            .attr("stroke-linejoin", "round")
-            .attr("stroke-linecap", "round")
-            .attr("stroke-width", 1.5)
-            .attr("d", totalAccidentsLine);
-
-    focus.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + zoomedRangeHeight + ")")
-            .call(xAxisZoom);
-
-    focus.append("g")
-            .attr("class", "axis axis--y")
-            .call(yAxisZoom);
-
-    context.append("path")
-            .datum(data)
-            .attr("class", "area")
-            .attr("d", areaFull);
-
-    context.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + fullRangeHeight + ")")
-            .call(xAxisFull);
-
-    context.append("g")
-            .attr("class", "brush")
-            .call(brush)
-            .call(brush.move, xZoomRange.range());
-
-    svg.append("rect")
-            .attr("class", "zoom")
-            .attr("width", rangeWidth)
-            .attr("height", zoomedRangeHeight)
-            .attr("transform", "translate(" + zoomedRangeMargin.left + "," + zoomedRangeMargin.top + ")")
-            .call(zoom);
-});
-
-function brushed() {
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom")
-        return; // ignore brush-by-zoom
-    var s = d3.event.selection || xFullRange.range();
-    xZoomRange.domain(s.map(xFullRange.invert, xFullRange));
-    focus.select(".area").attr("d", areaZoom);
-    focus.select(".line").attr("d", totalAccidentsLine);
-    focus.select(".axis--x").call(xAxisZoom);
-    svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
-            .scale(rangeWidth / (s[1] - s[0]))
-            .translate(-s[0], 0));
+function AccidentsTimeSerie() {
+    this.height = 250;
+    this.zoomedRangeMargin = {top: 90, right: 10, bottom: 20, left: 40};
+    this.fullRangeMargin = {top: 0, right: 10, bottom: 190, left: 40};
+    this.parseDate = d3.timeParse("%b %Y");
+    $('div .overview').height(this.height);
 }
 
-function zoomed() {
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush")
-        return; // ignore zoom-by-brush
-    var t = d3.event.transform;
-    xZoomRange.domain(t.rescaleX(xFullRange).domain());
-    focus.select(".area").attr("d", areaZoom);
-    focus.select(".line").attr("d", totalAccidentsLine);
-    focus.select(".axis--x").call(xAxisZoom);
-    context.select(".brush").call(brush.move, xZoomRange.range().map(t.invertX, t));
+AccidentsTimeSerie.prototype.drawBase = function () {
+    const minWidth = 400;
+    if ($('div .overview').width() < minWidth) {
+        $('div .overview').addClass('pre-scrollable');
+        return false;
+    } else {
+        $('div .overview').removeClass('pre-scrollable');
+    }
+    this.width = Math.max($('div .overview').width(), minWidth);
+    this.rangeWidth = this.width - this.zoomedRangeMargin.left - this.zoomedRangeMargin.right;
+    this.zoomedRangeHeight = this.height - this.zoomedRangeMargin.top - this.zoomedRangeMargin.bottom;
+    this.fullRangeHeight = this.height - this.fullRangeMargin.top - this.fullRangeMargin.bottom;
+    $('div .overview').children().remove();
+
+    this.svg = d3.select("div .overview").append("svg")
+            .attr("width", this.width)
+            .attr("height", this.height);
+
+    this.xZoomRange = d3.scaleTime().range([0, this.rangeWidth]);
+    this.xFullRange = d3.scaleTime().range([0, this.rangeWidth]);
+    this.yZoomRange = d3.scaleLinear().range([this.zoomedRangeHeight, 0]);
+    this.yFullRange = d3.scaleLinear().range([this.fullRangeHeight, 0]);
+
+    this.xAxisZoom = d3.axisBottom(this.xZoomRange);
+    this.xAxisFull = d3.axisBottom(this.xFullRange);
+    this.yAxisZoom = d3.axisLeft(this.yZoomRange);
+
+    var self = this;
+    this.brush = d3.brushX()
+            .extent([[0, 0], [this.rangeWidth, this.fullRangeHeight]])
+            .on("brush end", function () {
+                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom")
+                    return; // ignore brush-by-zoom
+                var s = d3.event.selection || self.xFullRange.range();
+                self.xZoomRange.domain(s.map(self.xFullRange.invert, self.xFullRange));
+                self.focusGraphic.select(".area").attr("d", self.areaZoom);
+                self.focusGraphic.select(".line").attr("d", self.totalAccidentsLine);
+                self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
+                self.svg.select(".zoom").call(self.zoom.transform, d3.zoomIdentity
+                        .scale(self.rangeWidth / (s[1] - s[0]))
+                        .translate(-s[0], 0));
+            });
+
+    this.zoom = d3.zoom()
+            .scaleExtent([1, Infinity])
+            .translateExtent([[0, 0], [this.rangeWidth, this.zoomedRangeHeight]])
+            .extent([[0, 0], [this.rangeWidth, this.zoomedRangeHeight]])
+            .on("zoom", function () {
+                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush")
+                    return; // ignore zoom-by-brush
+                var t = d3.event.transform;
+                self.xZoomRange.domain(t.rescaleX(self.xFullRange).domain());
+                self.focusGraphic.select(".area").attr("d", self.areaZoom);
+                self.focusGraphic.select(".line").attr("d", self.totalAccidentsLine);
+                self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
+                self.context.select(".brush").call(self.brush.move, self.xZoomRange.range().map(t.invertX, t));
+            });
+
+    this.totalAccidentsLine = d3.line()
+            .x(function (d) {
+                return self.xZoomRange(d.date);
+            })
+            .y(function (d) {
+                return self.yZoomRange(d.price);
+            });
+
+    this.areaZoom = d3.area()
+            .curve(d3.curveMonotoneX)
+            .x(function (d) {
+                return self.xZoomRange(d.date);
+            })
+            .y0(this.zoomedRangeHeight)
+            .y1(function (d) {
+                return self.yZoomRange(d.price);
+            });
+
+    this.areaFull = d3.area()
+            .curve(d3.curveMonotoneX)
+            .x(function (d) {
+                return self.xFullRange(d.date);
+            })
+            .y0(this.fullRangeHeight)
+            .y1(function (d) {
+                return self.yFullRange(d.price);
+            });
+
+    this.svg.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", this.rangeWidth)
+            .attr("height", this.zoomedRangeHeight);
+
+    this.focusGraphic = this.svg.append("g")
+            .attr("class", "focus")
+            .attr("transform", "translate(" + this.zoomedRangeMargin.left + "," + this.zoomedRangeMargin.top + ")");
+
+    this.context = this.svg.append("g")
+            .attr("class", "context")
+            .attr("transform", "translate(" + this.fullRangeMargin.left + "," + this.fullRangeMargin.top + ")");
+    return true;
 }
 
-function type(d) {
-    d.date = parseDate(d.date);
-    d.price = +d.price;
-    return d;
+AccidentsTimeSerie.prototype.loadData = function () {
+    var self = this;
+    d3.csv("sp500.csv", function (d) {
+        d.date = self.parseDate(d.date);
+        d.price = +d.price;
+        return d;
+    }, function (error, data) {
+        if (error)
+            throw error;
+
+        self.xZoomRange.domain(d3.extent(data, function (d) {
+            return d.date;
+        }));
+        self.yZoomRange.domain([0, d3.max(data, function (d) {
+                return d.price;
+            })]);
+        self.xFullRange.domain(self.xZoomRange.domain());
+        self.yFullRange.domain(self.yZoomRange.domain());
+
+        self.focusGraphic.append("path")
+                .datum(data)
+                .attr("class", "area")
+                .attr("d", self.areaZoom);
+
+        self.focusGraphic.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("fill", "none")
+                .attr("stroke", "red")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-linecap", "round")
+                .attr("stroke-width", 1.5)
+                .attr("d", self.totalAccidentsLine);
+
+        self.focusGraphic.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
+                .call(self.xAxisZoom);
+
+        self.focusGraphic.append("g")
+                .attr("class", "axis axis--y")
+                .call(self.yAxisZoom);
+
+        self.context.append("path")
+                .datum(data)
+                .attr("class", "area")
+                .attr("d", self.areaFull);
+
+        self.context.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + self.fullRangeHeight + ")")
+                .call(self.xAxisFull);
+
+        self.context.append("g")
+                .attr("class", "brush")
+                .call(self.brush)
+                .call(self.brush.move, self.xZoomRange.range());
+
+        self.svg.append("rect")
+                .attr("class", "zoom")
+                .attr("width", self.rangeWidth)
+                .attr("height", self.zoomedRangeHeight)
+                .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
+                .call(self.zoom);
+    });
 }
+
+var accidentsTimeSerie = new AccidentsTimeSerie();
+accidentsTimeSerie.drawBase();
+accidentsTimeSerie.loadData();

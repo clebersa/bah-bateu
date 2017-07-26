@@ -7,13 +7,12 @@
 
 @section('main-content')
 <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-12 overviewContainer" style="border-style: solid;">
         <div class="text-center overview"></div>
     </div>
 </div>
 <div class="row">
     <div class="col-lg-6 col-md-6">
-        Parallel Sets
         <div class="row">
             <div class="col-lg-12" style="height: 250px;border-style: solid;">
                 Parallel Sets

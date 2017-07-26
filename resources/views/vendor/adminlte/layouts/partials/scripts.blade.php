@@ -8,7 +8,7 @@
 <script src="{{ url ('/js/css-element-queries/src/ResizeSensor.js')}}"></script>
 <script src="{{ url ('/js/css-element-queries/src/ElementQueries.js')}}"></script>
 
-<!--<script src="{{ url ('/js/overview-brush.js') }}" type="text/javascript"></script>-->
+<script src="{{ url ('/js/overview-brush.js') }}" type="text/javascript"></script>
 <script src="{{ url ('/js/heatmap.js') }}" type="text/javascript"></script>
 <script src="{{ url ('/js/scatter.js') }}" type="text/javascript"></script>
 <script src="{{ url ('/js/googlemaps.js') }}" type="text/javascript"></script>
