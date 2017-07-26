@@ -15,7 +15,7 @@
 <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
 </script>
 <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCeltywxFHg7y0adXIu0X9fqjjbmkmVEck&libraries=visualization&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCeltywxFHg7y0adXIu0X9fqjjbmkmVEck&libraries=visualization&callback=accidentsMap.initMap">
 </script>
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
       Both of these plugins are recommended to enhance the

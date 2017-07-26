@@ -32,8 +32,8 @@
             </div>
             <div class="col-lg-12" style="border-style: solid;">
                 <div class="floating-panel btn-group text-center">
-                    <button id="pointsButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;" onclick="showPoints()">Points</button>
-                    <button id="heatMapButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;" onclick="showHeatMap()">Heatmap</button>
+                    <button id="pointsButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;">Points</button>
+                    <button id="heatMapButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;">Heatmap</button>
                 </div>
                 <div id="map"></div>
             </div>

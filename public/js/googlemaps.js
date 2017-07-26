@@ -1,112 +1,152 @@
-var map, heatmap, markers, markerCluster, accidentsPoints, infoWindow, accidentsInfo;
+function AccidentsMap() {
+    this.accidentsInfo = null;
+    this.accidentsLocations = null;
+    this.heatMapLayer = null;
+    this.accidentInfoBoxDefaultTitle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    this.accidentInfoBoxDefaultBody = "<br/><br/><br/>"
 
-var accidentInfoBoxDefaultTitle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-var accidentInfoBoxDefaultBody = "<br/><br/><br/>";
+    $("#map").height(300);
 
-$("#map").height(300);
-$.ajax({url: '/bah-bateu/',
-    type: 'POST',
-    data: {
-        _token: $('meta[name="csrf-token"]').attr('content'),
-        chart: 'googlemaps'
-    },
-    dataType: 'JSON',
-    success: function (result) {
-        console.log("success for google maps");
-        accidentsPoints = result;
-        maxLatitude = Math.max.apply(Math, accidentsPoints.map(function (coordinate) {
-            return coordinate.latitude;
-        }));
-        minLatitude = Math.min.apply(Math, accidentsPoints.map(function (coordinate) {
-            return coordinate.latitude;
-        }));
-        maxLongitude = Math.max.apply(Math, accidentsPoints.map(function (coordinate) {
-            return coordinate.longitude;
-        }));
-        minLongitude = Math.min.apply(Math, accidentsPoints.map(function (coordinate) {
-            return coordinate.longitude;
-        }));
-        centralLatitude = (maxLatitude + minLatitude) / 2;
-        centralLongitude = (maxLongitude + minLongitude) / 2;
-        loadMap({lat: centralLatitude, lng: centralLongitude}, convertPoints(accidentsPoints));
-        loadLayers();
-        $("#heatMapButton").click();
-    },
-    error: function (result) {
-        console.log("error for google maps");
-        console.log(result);
+    var self = this;
+    $("#heatMapButton").click(function () {
+        self.showHeatMap();
+    });
+    $("#pointsButton").click(function () {
+        self.showPoints();
+    });
+}
+
+AccidentsMap.prototype.retrieveData = function (callbackFunctionName) {
+    var self = this;
+    $.ajax({url: '/bah-bateu/',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            chart: 'googlemaps'
+        },
+        dataType: 'JSON',
+        success: function (result) {
+            console.log("success for google maps");
+            self.accidentsLocations = result;
+            var maxLatitude = Math.max.apply(Math, self.accidentsLocations.map(function (coordinate) {
+                return coordinate.latitude;
+            }));
+            var minLatitude = Math.min.apply(Math, self.accidentsLocations.map(function (coordinate) {
+                return coordinate.latitude;
+            }));
+
+            var maxLongitude = Math.max.apply(Math, self.accidentsLocations.map(function (coordinate) {
+                return coordinate.longitude;
+            }));
+            var minLongitude = Math.min.apply(Math, self.accidentsLocations.map(function (coordinate) {
+                return coordinate.longitude;
+            }));
+
+            var centralLatitude = (maxLatitude + minLatitude) / 2;
+            var centralLongitude = (maxLongitude + minLongitude) / 2;
+
+            self.map.setCenter({lat: centralLatitude, lng: centralLongitude});
+
+            self.loadLayers();
+            self[callbackFunctionName]();
+        },
+        error: function (result) {
+            console.log("error for google maps");
+            console.log(result);
+        }
+    });
+}
+
+AccidentsMap.prototype.showHeatMap = function () {
+    if (this.accidentsLocations === null) {
+        this.retrieveData("showHeatMap");
+    } else {
+        $("#pointsButton").removeClass("text-bold");
+        $("#heatMapButton").addClass("text-bold");
+        this.markerCluster.clearMarkers();
+        this.heatMapLayer.setMap(this.map);
     }
-});
-
-function showHeatMap() {
-    $("#pointsButton").removeClass("text-bold");
-    $("#heatMapButton").addClass("text-bold");
-    markerCluster.clearMarkers();
-    heatmap.setMap(map);
 }
 
-function showPoints() {
-    $("#heatMapButton").removeClass("text-bold");
-    $("#pointsButton").addClass("text-bold");
-    heatmap.setMap(null);
-    if (markerCluster.getMarkers().length === 0) {
-        markerCluster.addMarkers(markers);
-        markerCluster.redraw();
+AccidentsMap.prototype.showPoints = function () {
+    if (this.accidentsLocations === null) {
+        this.retrieveData("showPoints");
+    } else {
+        $("#heatMapButton").removeClass("text-bold");
+        $("#pointsButton").addClass("text-bold");
+        this.heatMapLayer.setMap(null);
+        if (this.markerCluster.getMarkers().length === 0) {
+            this.markerCluster.addMarkers(this.markers);
+            this.markerCluster.redraw();
+        }
     }
 }
 
-function initMap() {
-    loadMap({lat: -30.033056, lng: -51.23}, []);
-}
-
-function loadMap(center) {
+AccidentsMap.prototype.initMap = function () {
     console.log("loading map");
-    map = new google.maps.Map(document.getElementById('map'), {
+    this.map = new google.maps.Map(document.getElementById('map'), {
         zoom: 10,
-        center: center,
+        center: {lat: -30.033056, lng: -51.23},
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 }
 
-function loadLayers() {
-    heatmap = new google.maps.visualization.HeatmapLayer({
-        data: convertPoints(accidentsPoints),
-        map: map,
+AccidentsMap.prototype.loadLayers = function () {
+    var points = [];
+    $.each(this.accidentsLocations, function (index, accidentLocation) {
+        points.push({
+            location: new google.maps.LatLng(
+                    accidentLocation.latitude,
+                    accidentLocation.longitude),
+            weight: accidentLocation.total
+        });
+    });
+
+    this.heatMapLayer = new google.maps.visualization.HeatmapLayer({
+        data: points,
+        map: this.map,
         opacity: 0.75
     });
-    var infoWindowBaseContent = '<div class="box box-solid no-margin">'
-            + '<div class="box-header">'
-            + '  <h3 class="box-title" id="accidentsInfoBoxTitle">' + accidentInfoBoxDefaultTitle + '</h3>'
-            + '</div>'
-            + '<div class="box-body no-padding" id="accidentsInfoBoxBody">' + accidentInfoBoxDefaultBody + '</div>'
-            + '<div class="overlay" id="accidentsInfoBoxOverlay">'
-            + '  <i class="fa fa-refresh fa-spin"></i>'
+
+    var infoWindowBaseContent =
+            '<div class="box box-solid no-margin">'
+            + '  <div class="box-header">'
+            + '    <h3 class="box-title" id="accidentsInfoBoxTitle">' + this.accidentInfoBoxDefaultTitle + '</h3>'
+            + '  </div>'
+            + '  <div class="box-body no-padding" id="accidentsInfoBoxBody">' + this.accidentInfoBoxDefaultBody + '</div>'
+            + '  <div class="overlay" id="accidentsInfoBoxOverlay">'
+            + '    <i class="fa fa-refresh fa-spin"></i>'
+            + '  </div>'
             + '</div>';
-    infoWindow = new google.maps.InfoWindow({
+    this.infoWindow = new google.maps.InfoWindow({
         content: infoWindowBaseContent
     });
-    markers = accidentsPoints.map(function (location, i) {
+    var self = this;
+    this.markers = this.accidentsLocations.map(function (location, i) {
         var marker = new google.maps.Marker({
             position: {lat: location.latitude, lng: location.longitude},
             label: String(location.total)
         });
         marker.addListener('click', function () {
-            if (typeof infoWindow !== 'undefined') {
-                infoWindow.close();
+            if (typeof self.infoWindow !== 'undefined') {
+                self.infoWindow.close();
             }
-            infoWindow.open(map, marker);
-            retrieveInfoWindowContent(location.latitude, location.longitude)
+            self.infoWindow.open(self.map, marker);
+            self.retrieveInfoWindowContent(location.latitude, location.longitude)
         });
         return marker;
     });
     // Add a marker clusterer to manage the markers.
-    markerCluster = new MarkerClusterer(map, markers,
+    this.markerCluster = new MarkerClusterer(this.map, this.markers,
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 }
-function retrieveInfoWindowContent(latitude, longitude) {
+
+AccidentsMap.prototype.retrieveInfoWindowContent = function (latitude, longitude) {
     $("#accidentsInfoBoxOverlay").removeClass('hidden');
-    $("#accidentsInfoBoxTitle").html(accidentInfoBoxDefaultTitle);
-    $("#accidentsInfoBoxBody").html(accidentInfoBoxDefaultBody);
+    $("#accidentsInfoBoxTitle").html(this.accidentInfoBoxDefaultTitle);
+    $("#accidentsInfoBoxBody").html(this.accidentInfoBoxDefaultBody);
+
+    var self = this;
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
@@ -117,31 +157,31 @@ function retrieveInfoWindowContent(latitude, longitude) {
         },
         dataType: 'JSON',
         success: function (result) {
-            accidentsInfo = result;
+            self.accidentsInfo = result;
             var accidentInfoBoxTitle = "";
             var dateOptions = {
                 year: "2-digit", month: "2-digit", day: "2-digit",
                 hour: "2-digit", minute: "2-digit"
             };
-            if (accidentsInfo.length > 1) {
+            if (self.accidentsInfo.length > 1) {
                 accidentInfoBoxTitle += '<div class="form-group no-margin form-inline">'
-                        + 'Accident: <select class="form-control" onchange="updateAccidentDetailsBox($(this).find(\':selected\').val())">';
-                $.each(accidentsInfo, function (index, accidentInfo) {
+                        + 'Accident: <select class="form-control" onchange="accidentsMap.updateAccidentDetailsBox($(this).find(\':selected\').val())">';
+                $.each(self.accidentsInfo, function (index, accidentInfo) {
                     accidentInfoBoxTitle += '<option value="' + index + '">#' + (index + 1) + ' - ' + (new Date(accidentInfo.moment)
                             .toLocaleTimeString("en-us", dateOptions)) + '</option>';
                 });
                 accidentInfoBoxTitle += '</select></div>';
-            } else if (accidentsInfo.length === 1) {
+            } else if (self.accidentsInfo.length === 1) {
                 accidentInfoBoxTitle = "Accident Details";
             }
             $("#accidentsInfoBoxTitle").html(accidentInfoBoxTitle);
-            updateAccidentDetailsBox(0);
+            self.updateAccidentDetailsBox(0);
             $("#accidentsInfoBoxOverlay").addClass('hidden');
         }});
 }
 
-function updateAccidentDetailsBox(index) {
-    var accidentInfo = accidentsInfo[index];
+AccidentsMap.prototype.updateAccidentDetailsBox = function (accidentInfoIndex) {
+    var accidentInfo = this.accidentsInfo[accidentInfoIndex];
 
     var dateOptions = {
         weekday: "long", year: "numeric", month: "long", day: "2-digit",
@@ -172,15 +212,4 @@ function updateAccidentDetailsBox(index) {
     $("#accidentsInfoBoxBody").html(content);
 }
 
-function convertPoints(accidents) {
-    points = []
-    $.each(accidents, function (index) {
-        points.push({
-            location: new google.maps.LatLng(
-                    accidents[index].latitude,
-                    accidents[index].longitude),
-            weight: accidents[index].total
-        });
-    });
-    return points;
-}
+var accidentsMap = new AccidentsMap();
