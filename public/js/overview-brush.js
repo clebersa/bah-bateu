@@ -1,7 +1,7 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 90, right: 10, bottom: 20, left: 40};
-    this.fullRangeMargin = {top: 0, right: 10, bottom: 190, left: 40};
+    this.zoomedRangeMargin = {top: 90, right: 10, bottom: 25, left: 35};
+    this.fullRangeMargin = {top: 0, right: 100, bottom: 190, left: 200};
     this.parseDate = d3.timeParse("%b %Y");
     $('div .overview').height(this.height);
 }
@@ -17,6 +17,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
     this.width = Math.max($('div .overview').width(), minWidth);
     this.rangeWidth = this.width - this.zoomedRangeMargin.left - this.zoomedRangeMargin.right;
     this.zoomedRangeHeight = this.height - this.zoomedRangeMargin.top - this.zoomedRangeMargin.bottom;
+    this.fullRangeWidth = this.width - this.fullRangeMargin.left - this.fullRangeMargin.right;
     this.fullRangeHeight = this.height - this.fullRangeMargin.top - this.fullRangeMargin.bottom;
     $('div .overview').children().remove();
 
@@ -25,7 +26,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             .attr("height", this.height);
 
     this.xZoomRange = d3.scaleTime().range([0, this.rangeWidth]);
-    this.xFullRange = d3.scaleTime().range([0, this.rangeWidth]);
+    this.xFullRange = d3.scaleTime().range([0, this.fullRangeWidth]);
     this.yZoomRange = d3.scaleLinear().range([this.zoomedRangeHeight, 0]);
     this.yFullRange = d3.scaleLinear().range([this.fullRangeHeight, 0]);
 
@@ -35,33 +36,33 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
     var self = this;
     this.brush = d3.brushX()
-            .extent([[0, 0], [this.rangeWidth, this.fullRangeHeight]])
+            .extent([[0, 0], [this.fullRangeWidth, this.fullRangeHeight]])
             .on("brush end", function () {
                 if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom")
                     return; // ignore brush-by-zoom
                 var s = d3.event.selection || self.xFullRange.range();
                 self.xZoomRange.domain(s.map(self.xFullRange.invert, self.xFullRange));
                 self.focusGraphic.select(".area").attr("d", self.areaZoom);
-                self.focusGraphic.select(".line").attr("d", self.totalAccidentsLine);
+                self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLine);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
                 self.svg.select(".zoom").call(self.zoom.transform, d3.zoomIdentity
-                        .scale(self.rangeWidth / (s[1] - s[0]))
+                        .scale(self.fullRangeWidth / (s[1] - s[0]))
                         .translate(-s[0], 0));
             });
 
     this.zoom = d3.zoom()
             .scaleExtent([1, Infinity])
-            .translateExtent([[0, 0], [this.rangeWidth, this.zoomedRangeHeight]])
-            .extent([[0, 0], [this.rangeWidth, this.zoomedRangeHeight]])
+            .translateExtent([[0, 0], [this.fullRangeWidth, this.fullRangeHeight]])
+            .extent([[0, 0], [this.fullRangeWidth, this.fullRangeHeight]])
             .on("zoom", function () {
                 if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush")
                     return; // ignore zoom-by-brush
                 var t = d3.event.transform;
                 self.xZoomRange.domain(t.rescaleX(self.xFullRange).domain());
                 self.focusGraphic.select(".area").attr("d", self.areaZoom);
-                self.focusGraphic.select(".line").attr("d", self.totalAccidentsLine);
+                self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLine);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
-                self.context.select(".brush").call(self.brush.move, self.xZoomRange.range().map(t.invertX, t));
+                self.context.select(".brush").call(self.brush.move, self.xFullRange.range().map(t.invertX, t));
             });
 
     this.totalAccidentsLine = d3.line()
@@ -100,6 +101,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
     this.focusGraphic = this.svg.append("g")
             .attr("class", "focus")
+            .attr("fill", 'green')
             .attr("transform", "translate(" + this.zoomedRangeMargin.left + "," + this.zoomedRangeMargin.top + ")");
 
     this.context = this.svg.append("g")
@@ -134,12 +136,12 @@ AccidentsTimeSerie.prototype.loadData = function () {
 
         self.focusGraphic.append("path")
                 .datum(data)
-                .attr("class", "line")
+                .attr("class", "lineTotal")
                 .attr("fill", "none")
                 .attr("stroke", "red")
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-linecap", "round")
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 5)
                 .attr("d", self.totalAccidentsLine);
 
         self.focusGraphic.append("g")
@@ -164,7 +166,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
         self.context.append("g")
                 .attr("class", "brush")
                 .call(self.brush)
-                .call(self.brush.move, self.xZoomRange.range());
+                .call(self.brush.move, self.xFullRange.range());
 
         self.svg.append("rect")
                 .attr("class", "zoom")
