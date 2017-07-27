@@ -3,6 +3,9 @@ function AccidentsTimeSerie() {
     this.zoomedRangeMargin = {top: 75, right: 0, bottom: 25, left: 35};
     this.fullRangeMargin = {top: 0, right: 0, bottom: 200, left: 35};
     this.parseDate = d3.timeParse("%b %Y");
+    this.data = null;
+    this.stack = null;
+    this.colorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
     var self = this;
     new ResizeSensor(jQuery('div .overviewContainer'), function () {
@@ -53,6 +56,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 var s = d3.event.selection || self.xFullRange.range();
                 self.xZoomRange.domain(s.map(self.xFullRange.invert, self.xFullRange));
                 self.focusGraphic.select(".area").attr("d", self.areaZoom);
+                self.redrawStack();
                 self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLineZoom);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
                 self.svg.select(".zoom").call(self.zoom.transform, d3.zoomIdentity
@@ -71,6 +75,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 var t = d3.event.transform;
                 self.xZoomRange.domain(t.rescaleX(self.xFullRange).domain());
                 self.focusGraphic.select(".area").attr("d", self.areaZoom);
+                self.redrawStack();
                 self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLineZoom);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
                 self.context.select(".brush").call(self.brush.move, self.xFullRange.range().map(t.invertX, t));
@@ -103,13 +108,6 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             });
 
     this.involvedPeopleHistogram = d3.histogram();
-//    x(function (d) {
-//                return self.xFullRange(d.date);
-//            })
-//            .y0(this.fullRangeHeight)
-//            .y1(function (d) {
-//                return self.yFullRange(d.total);
-//            });
 
     this.svg.append("defs").append("clipPath")
             .attr("id", "clip")
@@ -129,35 +127,44 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
 AccidentsTimeSerie.prototype.loadData = function () {
     var self = this;
-    d3.csv("sp500.csv", function (d) {
-        d.date = self.parseDate(d.date);
-        d.total = +d.price;
-        d.injuried = Math.random() * (d.total);
-        d.seriouslyInjured = Math.random() * (d.total - d.injuried);
-        d.death = Math.random() * (d.total - d.injuried);
-        d.subsequentDeath = Math.random() * (d.total - d.injuried - d.death);
-        return d;
-    }, function (error, data) {
+    var type = null;
+    if (this.data === null) {
+        type = function (d) {
+            d.date = self.parseDate(d.date);
+            d.total = +d.price;
+            d.injuried = Math.random() * (d.total);
+            d.seriouslyInjured = Math.random() * (d.total - d.injuried);
+            d.death = Math.random() * (d.total - d.injuried);
+            d.subsequentDeath = Math.random() * (d.total - d.injuried - d.death);
+            d.totalInvolved = d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath;
+            return d;
+        }
+    }
+    d3.csv("sp500.csv", type, function (error, data) {
         if (error)
             throw error;
+        if (self.data === null) {
+            self.data = data;
+        } else {
+            data = self.data;
+        }
 
+        self.zoom.scaleExtent([1, data.length]);
         self.xZoomRange.domain(d3.extent(data, function (d) {
             return d.date;
         }));
         self.yZoomRange.domain([0, d3.max(data, function (d) {
                 return Math.max(d.total, d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
-            })]);
+            })]).nice();
         self.xFullRange.domain(self.xZoomRange.domain());
-        self.yFullRange.domain(self.yZoomRange.domain());
+        self.yFullRange.domain(self.yZoomRange.domain()).nice();
 
         self.involvedPeopleHistogram
                 .domain(self.xFullRange.domain())
                 .thresholds(self.xFullRange.ticks(data.length));
 
-        self.focusGraphic.append("path")
-                .datum(data)
-                .attr("class", "area")
-                .attr("d", self.areaZoom);
+        self.stack = d3.stack().keys(['injuried', 'seriouslyInjured', 'death', 'subsequentDeath']);
+        self.redrawStack();
 
         self.focusGraphic.append("path")
                 .datum(data)
@@ -187,7 +194,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
                 });
 
         var histogramBarWidth = self.xFullRange(self.involvedPeopleHistogram(data)[0].x1)
-                - self.xFullRange(self.involvedPeopleHistogram(data)[0].x0) - 4;
+                - self.xFullRange(self.involvedPeopleHistogram(data)[0].x0);
         bar.append("rect")
                 .attr("x", 1)
                 .attr("width", histogramBarWidth)
@@ -222,6 +229,35 @@ AccidentsTimeSerie.prototype.loadData = function () {
                 .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
                 .call(self.zoom);
     });
+}
+
+AccidentsTimeSerie.prototype.redrawStack = function () {
+    console.log("redrawStack");
+    var self = this;
+    console.log(self.xZoomRange.domain());
+    self.focusGraphic.selectAll(".serie").remove();
+    self.focusGraphic.selectAll(".serie")
+            .data(self.stack(self.data))
+            .enter().append("g")
+            .attr("class", "serie")
+            .attr("fill", function (d) {
+                return self.colorScale(d.key);
+            })
+            .selectAll("rect")
+            .data(function (d) {
+                return d;
+            })
+            .enter().append("rect")
+            .attr("x", function (d) {
+                return self.xZoomRange(d.data.date);
+            })
+            .attr("y", function (d) {
+                return self.yZoomRange(d[1]);
+            })
+            .attr("height", function (d) {
+                return self.yZoomRange(d[0]) - self.yZoomRange(d[1]);
+            })
+            .attr("width", (self.xZoomRange.range()[1] / self.data.length) * 0.75);
 }
 
 var accidentsTimeSerie = new AccidentsTimeSerie();

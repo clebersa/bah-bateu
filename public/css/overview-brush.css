@@ -1,5 +1,4 @@
-.area {
-    fill: steelblue;
+.serie {
     clip-path: url(#clip);
 }
 .lineTotal {
