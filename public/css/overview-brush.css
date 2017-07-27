@@ -6,6 +6,12 @@
     clip-path: url(#clip);
 }
 
+.histogram rect {
+    fill: gray;
+    shape-rendering: crispEdges;
+    clip-path: url(#clip);
+}
+
 .zoom {
     cursor: move;
     fill: none;

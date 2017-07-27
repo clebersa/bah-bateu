@@ -1,7 +1,7 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 75, right: 10, bottom: 25, left: 35};
-    this.fullRangeMargin = {top: 0, right: 10, bottom: 200, left: 35};
+    this.zoomedRangeMargin = {top: 75, right: 0, bottom: 25, left: 35};
+    this.fullRangeMargin = {top: 0, right: 0, bottom: 200, left: 35};
     this.parseDate = d3.timeParse("%b %Y");
 
     var self = this;
@@ -81,7 +81,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 return self.xFullRange(d.date);
             })
             .y(function (d) {
-                return self.yFullRange(d.price);
+                return self.yFullRange(d.total);
             });
 
     this.areaZoom = d3.area()
@@ -91,7 +91,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             })
             .y0(this.zoomedRangeHeight)
             .y1(function (d) {
-                return self.yZoomRange(d.price);
+                return self.yZoomRange(d.total);
             });
 
     this.totalAccidentsLineZoom = d3.line()
@@ -99,18 +99,17 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 return self.xZoomRange(d.date);
             })
             .y(function (d) {
-                return self.yZoomRange(d.price);
+                return self.yZoomRange(d.total);
             });
 
-    this.areaFull = d3.area()
-            .curve(d3.curveMonotoneX)
-            .x(function (d) {
-                return self.xFullRange(d.date);
-            })
-            .y0(this.fullRangeHeight)
-            .y1(function (d) {
-                return self.yFullRange(d.price);
-            });
+    this.involvedPeopleHistogram = d3.histogram();
+//    x(function (d) {
+//                return self.xFullRange(d.date);
+//            })
+//            .y0(this.fullRangeHeight)
+//            .y1(function (d) {
+//                return self.yFullRange(d.total);
+//            });
 
     this.svg.append("defs").append("clipPath")
             .attr("id", "clip")
@@ -132,7 +131,11 @@ AccidentsTimeSerie.prototype.loadData = function () {
     var self = this;
     d3.csv("sp500.csv", function (d) {
         d.date = self.parseDate(d.date);
-        d.price = +d.price;
+        d.total = +d.price;
+        d.injuried = Math.random() * (d.total);
+        d.seriouslyInjured = Math.random() * (d.total - d.injuried);
+        d.death = Math.random() * (d.total - d.injuried);
+        d.subsequentDeath = Math.random() * (d.total - d.injuried - d.death);
         return d;
     }, function (error, data) {
         if (error)
@@ -142,10 +145,14 @@ AccidentsTimeSerie.prototype.loadData = function () {
             return d.date;
         }));
         self.yZoomRange.domain([0, d3.max(data, function (d) {
-                return d.price;
+                return Math.max(d.total, d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
             })]);
         self.xFullRange.domain(self.xZoomRange.domain());
         self.yFullRange.domain(self.yZoomRange.domain());
+
+        self.involvedPeopleHistogram
+                .domain(self.xFullRange.domain())
+                .thresholds(self.xFullRange.ticks(data.length));
 
         self.focusGraphic.append("path")
                 .datum(data)
@@ -171,10 +178,22 @@ AccidentsTimeSerie.prototype.loadData = function () {
                 .attr("class", "axis axis--y")
                 .call(self.yAxisZoom);
 
-        self.context.append("path")
-                .datum(data)
-                .attr("class", "area")
-                .attr("d", self.areaFull);
+        var bar = self.context.selectAll(".histogram")
+                .data(data)
+                .enter().append("g")
+                .attr("class", "histogram")
+                .attr("transform", function (d) {
+                    return "translate(" + self.xFullRange(d.date) + "," + self.yFullRange(d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath) + ")";
+                });
+
+        var histogramBarWidth = self.xFullRange(self.involvedPeopleHistogram(data)[0].x1)
+                - self.xFullRange(self.involvedPeopleHistogram(data)[0].x0) - 4;
+        bar.append("rect")
+                .attr("x", 1)
+                .attr("width", histogramBarWidth)
+                .attr("height", function (d) {
+                    return self.fullRangeHeight - self.yFullRange(d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
+                });
 
         self.context.append("path")
                 .datum(data)
