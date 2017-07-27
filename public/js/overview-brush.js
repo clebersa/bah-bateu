@@ -1,8 +1,16 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 90, right: 10, bottom: 25, left: 35};
-    this.fullRangeMargin = {top: 0, right: 100, bottom: 190, left: 200};
+    this.zoomedRangeMargin = {top: 75, right: 10, bottom: 25, left: 35};
+    this.fullRangeMargin = {top: 0, right: 10, bottom: 200, left: 35};
     this.parseDate = d3.timeParse("%b %Y");
+
+    var self = this;
+    new ResizeSensor(jQuery('div .overviewContainer'), function () {
+        if (self.drawBase()) {
+            self.loadData();
+        }
+    });
+
     $('div .overview').height(this.height);
 }
 
@@ -19,6 +27,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
     this.zoomedRangeHeight = this.height - this.zoomedRangeMargin.top - this.zoomedRangeMargin.bottom;
     this.fullRangeWidth = this.width - this.fullRangeMargin.left - this.fullRangeMargin.right;
     this.fullRangeHeight = this.height - this.fullRangeMargin.top - this.fullRangeMargin.bottom;
+
     $('div .overview').children().remove();
 
     this.svg = d3.select("div .overview").append("svg")
@@ -198,4 +207,3 @@ AccidentsTimeSerie.prototype.loadData = function () {
 
 var accidentsTimeSerie = new AccidentsTimeSerie();
 accidentsTimeSerie.drawBase();
-accidentsTimeSerie.loadData();
