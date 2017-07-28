@@ -234,7 +234,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
 AccidentsTimeSerie.prototype.redrawStack = function () {
     console.log("redrawStack");
     var self = this;
-    console.log(self.xZoomRange.domain());
+    var stackWidth = Math.abs((self.xZoomRange(this.data[this.data.length - 1].date) - self.xZoomRange(this.data[0].date)) / this.data.length) * 0.95;
     self.focusGraphic.selectAll(".serie").remove();
     self.focusGraphic.selectAll(".serie")
             .data(self.stack(self.data))
@@ -257,7 +257,7 @@ AccidentsTimeSerie.prototype.redrawStack = function () {
             .attr("height", function (d) {
                 return self.yZoomRange(d[0]) - self.yZoomRange(d[1]);
             })
-            .attr("width", (self.xZoomRange.range()[1] / self.data.length) * 0.75);
+            .attr("width", stackWidth);
 }
 
 var accidentsTimeSerie = new AccidentsTimeSerie();
