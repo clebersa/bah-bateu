@@ -5,7 +5,13 @@ function AccidentsTimeSerie() {
     this.parseDate = d3.timeParse("%b %Y");
     this.data = null;
     this.stack = null;
+    this.isDomainDefined = false;
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory20);
+
+    this.xZoomRange = d3.scaleTime();
+    this.xFullRange = d3.scaleTime();
+    this.yZoomRange = d3.scaleLinear();
+    this.yFullRange = d3.scaleLinear();
 
     var self = this;
     new ResizeSensor(jQuery('div .overviewContainer'), function () {
@@ -37,10 +43,10 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             .attr("width", this.width)
             .attr("height", this.height);
 
-    this.xZoomRange = d3.scaleTime().range([0, this.zoomedRangeWidth]);
-    this.xFullRange = d3.scaleTime().range([0, this.fullRangeWidth]);
-    this.yZoomRange = d3.scaleLinear().range([this.zoomedRangeHeight, 0]);
-    this.yFullRange = d3.scaleLinear().range([this.fullRangeHeight, 0]);
+    this.xZoomRange.range([0, this.zoomedRangeWidth]);
+    this.xFullRange.range([0, this.fullRangeWidth]);
+    this.yZoomRange.range([this.zoomedRangeHeight, 0]);
+    this.yFullRange.range([this.fullRangeHeight, 0]);
 
     this.xAxisZoom = d3.axisBottom(this.xZoomRange);
     this.xAxisFull = d3.axisBottom(this.xFullRange);
@@ -52,7 +58,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             .on("brush end", function () {
                 if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom")
                     return; // ignore brush-by-zoom
-                console.log('brushed');
+                console.log('+++++ brushed +++++');
                 var s = d3.event.selection || self.xFullRange.range();
                 self.xZoomRange.domain(s.map(self.xFullRange.invert, self.xFullRange));
                 self.focusGraphic.select(".area").attr("d", self.areaZoom);
@@ -150,13 +156,19 @@ AccidentsTimeSerie.prototype.loadData = function () {
         }
 
         self.zoom.scaleExtent([1, data.length]);
-        self.xZoomRange.domain(d3.extent(data, function (d) {
+        if (!self.isDomainDefined) {
+            self.xZoomRange.domain(d3.extent(data, function (d) {
+                return d.date;
+            }));
+
+            self.yZoomRange.domain([0, d3.max(data, function (d) {
+                    return Math.max(d.total, d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
+                })]).nice();
+            self.isDomainDefined = true;
+        }
+        self.xFullRange.domain(d3.extent(data, function (d) {
             return d.date;
         }));
-        self.yZoomRange.domain([0, d3.max(data, function (d) {
-                return Math.max(d.total, d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
-            })]).nice();
-        self.xFullRange.domain(self.xZoomRange.domain());
         self.yFullRange.domain(self.yZoomRange.domain()).nice();
 
         self.involvedPeopleHistogram
@@ -220,7 +232,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
         self.context.append("g")
                 .attr("class", "brush")
                 .call(self.brush)
-                .call(self.brush.move, self.xFullRange.range());
+                .call(self.brush.move, self.xZoomRange.domain().map(self.xFullRange, self.xZoomRange.domain()));
 
         self.svg.append("rect")
                 .attr("class", "zoom")
