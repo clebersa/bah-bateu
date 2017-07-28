@@ -7,6 +7,39 @@ use Illuminate\Support\Facades\DB;
 
 class GeneralDAO {
 
+    public function getOverviewData() {
+        $data = DB::select(
+                        "SELECT "
+                        . "  weekly_periods.*, "
+                        . "  count(*) AS totalAccidents, "
+                        . "  SUM(`a`.`FERIDOS`) AS `injuried`, "
+                        . "  (IF(SUM(`a`.`FERIDOS_GR`) IS NULL, 0, SUM(`a`.`FERIDOS_GR`))) AS `seriouslyInjuried`, " //TODO: handle null
+                        . "  SUM(`a`.`MORTES`) AS `deaths`, "
+                        . "  SUM(`a`.`MORTE_POST`) AS `subsequentDeaths` "
+                        . "FROM ( "
+                        . "  SELECT "
+                        . "    YEAR(MOMENTO) AS `year`, "
+                        . "		WEEK(MOMENTO) AS `week`, "
+                        . "    MIN(DATE(MOMENTO)) AS min_moment, "
+                        . "    MAX(DATE(MOMENTO)) AS max_moment "
+                        . "  FROM `accidents` WHERE YEAR(MOMENTO) = 2010 " //TODO: remove filter
+                        . "  GROUP BY "
+                        . "    `year`, "
+                        . "    `week` "
+                        . ") weekly_periods, `accidents` AS `a` "
+                        . "WHERE "
+                        . "  YEAR(`a`.`MOMENTO`) = `year` AND WEEK(`a`.`MOMENTO`) = `week` "
+                        . "GROUP BY "
+                        . "  `year`, "
+                        . "  `week` "
+                        . "ORDER BY "
+                        . "  `year` ASC, "
+                        . "  `week` ASC"
+        );
+        Log::info(count($data) . " records retrieved for the overview.");
+        return $data;
+    }
+
     public function getDataHeatmap() {
         $data = DB::select(
                         'SELECT DAYOFWEEK(MOMENTO) AS `dow`, '

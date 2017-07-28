@@ -31,7 +31,9 @@ class HomeController extends Controller
         Log::info("loading data");
         $chart = $request->input('chart');
         $generalDAO = new GeneralDAO();
-        if($chart == 'heatmap'){
+        if($chart == 'overview'){
+            $result = $generalDAO->getOverviewData();
+        } else if($chart == 'heatmap'){
             $result = $generalDAO->getDataHeatmap();
         } else if($chart == 'scatter'){
             $result = $generalDAO->getScatterPlotData();

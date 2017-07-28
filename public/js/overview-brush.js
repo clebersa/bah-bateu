@@ -1,8 +1,8 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 75, right: 0, bottom: 25, left: 35};
-    this.fullRangeMargin = {top: 0, right: 0, bottom: 200, left: 35};
-    this.parseDate = d3.timeParse("%b %Y");
+    this.zoomedRangeMargin = {top: 75, right: 0, bottom: 25, left: 45};
+    this.fullRangeMargin = {top: 0, right: 0, bottom: 200, left: 45};
+    this.parseDate = d3.timeParse("%Y-%m-%d");
     this.data = null;
     this.stack = null;
     this.isDomainDefined = false;
@@ -12,6 +12,20 @@ function AccidentsTimeSerie() {
     this.xFullRange = d3.scaleTime();
     this.yZoomRange = d3.scaleLinear();
     this.yFullRange = d3.scaleLinear();
+
+    $("#getDataOverview").click(function () {
+        $.ajax({url: '/bah-bateu/',
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                chart: 'overview'
+            },
+            dataType: 'JSON',
+            success: function (result) {
+                self.data = result;
+                self.loadData();
+            }});
+    });
 
     var self = this;
     new ResizeSensor(jQuery('div .overviewContainer'), function () {
@@ -89,28 +103,28 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
     this.totalAccidentsLineFull = d3.line()
             .x(function (d) {
-                return self.xFullRange(d.date);
+                return self.xFullRange(d.min_moment);
             })
             .y(function (d) {
-                return self.yFullRange(d.total);
+                return self.yFullRange(d.totalAccidents);
             });
 
     this.areaZoom = d3.area()
             .curve(d3.curveMonotoneX)
             .x(function (d) {
-                return self.xZoomRange(d.date);
+                return self.xZoomRange(d.min_moment);
             })
             .y0(this.zoomedRangeHeight)
             .y1(function (d) {
-                return self.yZoomRange(d.total);
+                return self.yZoomRange(d.totalAccidents);
             });
 
     this.totalAccidentsLineZoom = d3.line()
             .x(function (d) {
-                return self.xZoomRange(d.date);
+                return self.xZoomRange(d.min_moment);
             })
             .y(function (d) {
-                return self.yZoomRange(d.total);
+                return self.yZoomRange(d.totalAccidents);
             });
 
     this.involvedPeopleHistogram = d3.histogram();
@@ -134,119 +148,109 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 AccidentsTimeSerie.prototype.loadData = function () {
     var self = this;
     var type = null;
-    if (this.data === null) {
-        type = function (d) {
-            d.date = self.parseDate(d.date);
-            d.total = +d.price;
-            d.injuried = Math.random() * (d.total);
-            d.seriouslyInjured = Math.random() * (d.total - d.injuried);
-            d.death = Math.random() * (d.total - d.injuried);
-            d.subsequentDeath = Math.random() * (d.total - d.injuried - d.death);
-            d.totalInvolved = d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath;
-            return d;
-        }
+    if (!this.data) {
+        console.log("data was not retrieved yet.");
+        return;
     }
-    d3.csv("sp500.csv", type, function (error, data) {
-        if (error)
-            throw error;
-        if (self.data === null) {
-            self.data = data;
-        } else {
-            data = self.data;
-        }
-
-        self.zoom.scaleExtent([1, data.length]);
-        if (!self.isDomainDefined) {
-            self.xZoomRange.domain(d3.extent(data, function (d) {
-                return d.date;
-            }));
-
-            self.yZoomRange.domain([0, d3.max(data, function (d) {
-                    return Math.max(d.total, d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
-                })]).nice();
-            self.isDomainDefined = true;
-        }
-        self.xFullRange.domain(d3.extent(data, function (d) {
-            return d.date;
-        }));
-        self.yFullRange.domain(self.yZoomRange.domain()).nice();
-
-        self.involvedPeopleHistogram
-                .domain(self.xFullRange.domain())
-                .thresholds(self.xFullRange.ticks(data.length));
-
-        self.stack = d3.stack().keys(['injuried', 'seriouslyInjured', 'death', 'subsequentDeath']);
-        self.redrawStack();
-
-        self.focusGraphic.append("path")
-                .datum(data)
-                .attr("class", "lineTotal")
-                .attr("fill", "none")
-                .attr("stroke", "red")
-                .attr("stroke-linejoin", "round")
-                .attr("stroke-linecap", "round")
-                .attr("stroke-width", 2)
-                .attr("d", self.totalAccidentsLineZoom);
-
-        self.focusGraphic.append("g")
-                .attr("class", "axis axis--x")
-                .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
-                .call(self.xAxisZoom);
-
-        self.focusGraphic.append("g")
-                .attr("class", "axis axis--y")
-                .call(self.yAxisZoom);
-
-        var bar = self.context.selectAll(".histogram")
-                .data(data)
-                .enter().append("g")
-                .attr("class", "histogram")
-                .attr("transform", function (d) {
-                    return "translate(" + self.xFullRange(d.date) + "," + self.yFullRange(d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath) + ")";
-                });
-
-        var histogramBarWidth = self.xFullRange(self.involvedPeopleHistogram(data)[0].x1)
-                - self.xFullRange(self.involvedPeopleHistogram(data)[0].x0);
-        bar.append("rect")
-                .attr("x", 1)
-                .attr("width", histogramBarWidth)
-                .attr("height", function (d) {
-                    return self.fullRangeHeight - self.yFullRange(d.injuried + d.seriouslyInjured + d.death + d.subsequentDeath);
-                });
-
-        self.context.append("path")
-                .datum(data)
-                .attr("class", "lineTotalFull")
-                .attr("fill", "none")
-                .attr("stroke", "green")
-                .attr("stroke-linejoin", "round")
-                .attr("stroke-linecap", "round")
-                .attr("stroke-width", 1)
-                .attr("d", self.totalAccidentsLineFull);
-
-        self.context.append("g")
-                .attr("class", "axis axis--x")
-                .attr("transform", "translate(0," + self.fullRangeHeight + ")")
-                .call(self.xAxisFull);
-
-        self.context.append("g")
-                .attr("class", "brush")
-                .call(self.brush)
-                .call(self.brush.move, self.xZoomRange.domain().map(self.xFullRange, self.xZoomRange.domain()));
-
-        self.svg.append("rect")
-                .attr("class", "zoom")
-                .attr("width", self.zoomedRangeWidth)
-                .attr("height", self.zoomedRangeHeight)
-                .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
-                .call(self.zoom);
+    this.data.forEach(function (record) {
+        record.min_moment = self.parseDate(record.min_moment);
+        record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
+        record.injuried = +record.injuried;
+        record.seriouslyInjuried = +record.seriouslyInjuried;
+        record.deaths = +record.deaths;
     });
+    var data = self.data;
+    self.zoom.scaleExtent([1, data.length]);
+    if (!self.isDomainDefined) {
+        self.xZoomRange.domain(d3.extent(data, function (d) {
+            return d.min_moment;
+        }));
+
+        self.yZoomRange.domain([0, d3.max(data, function (d) {
+                return Math.max(d.totalAccidents, d.totalPeople);
+            })]).nice();
+        self.isDomainDefined = true;
+    }
+    self.xFullRange.domain(d3.extent(data, function (d) {
+        return d.min_moment;
+    }));
+    self.yFullRange.domain(self.yZoomRange.domain()).nice();
+
+    self.involvedPeopleHistogram
+            .domain(self.xFullRange.domain())
+            .thresholds(self.xFullRange.ticks(data.length));
+
+    self.stack = d3.stack().keys(['injuried', 'seriouslyInjuried', 'deaths', 'subsequentDeaths']);
+    self.redrawStack();
+
+    self.focusGraphic.append("path")
+            .datum(data)
+            .attr("class", "lineTotal")
+            .attr("fill", "none")
+            .attr("stroke", "red")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 2)
+            .attr("d", self.totalAccidentsLineZoom);
+
+    self.focusGraphic.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
+            .call(self.xAxisZoom);
+
+    self.focusGraphic.append("g")
+            .attr("class", "axis axis--y")
+            .call(self.yAxisZoom);
+
+    var bar = self.context.selectAll(".histogram")
+            .data(data)
+            .enter().append("g")
+            .attr("class", "histogram")
+            .attr("transform", function (d) {
+                return "translate(" + self.xFullRange(d.min_moment) + "," + self.yFullRange(d.totalPeople) + ")";
+            });
+
+    var histogramBarWidth = self.xFullRange(self.involvedPeopleHistogram(data)[0].x1)
+            - self.xFullRange(self.involvedPeopleHistogram(data)[0].x0);
+    bar.append("rect")
+            .attr("x", 1)
+            .attr("width", histogramBarWidth)
+            .attr("height", function (d) {
+                return self.fullRangeHeight - self.yFullRange(d.totalPeople);
+            });
+
+    self.context.append("path")
+            .datum(data)
+            .attr("class", "lineTotalFull")
+            .attr("fill", "none")
+            .attr("stroke", "green")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 1)
+            .attr("d", self.totalAccidentsLineFull);
+
+    self.context.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + self.fullRangeHeight + ")")
+            .call(self.xAxisFull);
+
+    self.context.append("g")
+            .attr("class", "brush")
+            .call(self.brush)
+            .call(self.brush.move, self.xZoomRange.domain().map(self.xFullRange, self.xZoomRange.domain()));
+
+    self.svg.append("rect")
+            .attr("class", "zoom")
+            .attr("width", self.zoomedRangeWidth)
+            .attr("height", self.zoomedRangeHeight)
+            .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
+            .call(self.zoom);
 }
 
 AccidentsTimeSerie.prototype.redrawStack = function () {
     console.log("redrawStack");
     var self = this;
-    var stackWidth = Math.abs((self.xZoomRange(this.data[this.data.length - 1].date) - self.xZoomRange(this.data[0].date)) / this.data.length) * 0.95;
+    var stackWidth = Math.abs((self.xZoomRange(this.data[this.data.length - 1].min_moment) - self.xZoomRange(this.data[0].min_moment)) / this.data.length) * 0.95;
     self.focusGraphic.selectAll(".serie").remove();
     self.focusGraphic.selectAll(".serie")
             .data(self.stack(self.data))
@@ -261,9 +265,10 @@ AccidentsTimeSerie.prototype.redrawStack = function () {
             })
             .enter().append("rect")
             .attr("x", function (d) {
-                return self.xZoomRange(d.data.date);
+                return self.xZoomRange(d.data.min_moment);
             })
             .attr("y", function (d) {
+                console.log(d);
                 return self.yZoomRange(d[1]);
             })
             .attr("height", function (d) {
