@@ -153,18 +153,24 @@ AccidentsTimeSerie.prototype.loadData = function () {
     var data = self.data;
     self.zoom.scaleExtent([1, data.length]);
     if (!self.isDomainDefined) {
-        self.xZoomRange.domain(d3.extent(data, function (d) {
-            return d.min_moment;
-        }));
+        self.xZoomRange.domain([d3.min(data, function (d) {
+                return d.min_moment;
+            }), d3.max(data, function (d) {
+                return d.max_moment;
+            })]);
 
+console.log(self.xZoomRange.domain());
         self.yZoomRange.domain([0, d3.max(data, function (d) {
                 return Math.max(d.totalAccidents, d.totalPeople);
             })]).nice();
         self.isDomainDefined = true;
     }
-    self.xFullRange.domain(d3.extent(data, function (d) {
-        return d.min_moment;
-    }));
+    self.xFullRange.domain([d3.min(data, function (d) {
+            return d.min_moment;
+        }), d3.max(data, function (d) {
+            return d.max_moment;
+        })]);
+
     self.yFullRange.domain(self.yZoomRange.domain()).nice();
 
     self.involvedPeopleHistogram
