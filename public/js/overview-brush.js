@@ -22,6 +22,17 @@ function AccidentsTimeSerie() {
             },
             dataType: 'JSON',
             success: function (result) {
+                result.forEach(function (record) {
+                    record.max_moment = self.parseDate(record.max_moment);
+                    record.min_moment = self.parseDate(record.min_moment);
+                    record.totalAccidents = +record.totalAccidents;
+                    record.injuried = +record.injuried;
+                    record.seriouslyInjuried = +record.seriouslyInjuried;
+                    record.deaths = +record.deaths;
+                    record.subsequentDeaths = +record.subsequentDeaths;
+                   record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
+                });
+
                 self.data = result;
                 self.loadData();
             }});
@@ -140,16 +151,6 @@ AccidentsTimeSerie.prototype.loadData = function () {
         console.log("data was not retrieved yet.");
         return;
     }
-    this.data.forEach(function (record) {
-        record.max_moment = self.parseDate(record.max_moment);
-        record.min_moment = self.parseDate(record.min_moment);
-        record.totalAccidents = +record.totalAccidents;
-        record.injuried = +record.injuried;
-        record.seriouslyInjuried = +record.seriouslyInjuried;
-        record.deaths = +record.deaths;
-        record.subsequentDeaths = +record.subsequentDeaths;
-        record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
-    });
     var data = self.data;
     self.zoom.scaleExtent([1, data.length]);
     if (!self.isDomainDefined) {
