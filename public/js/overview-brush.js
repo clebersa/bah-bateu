@@ -1,7 +1,7 @@
 function AccidentsTimeSerie() {
     this.height = 250;
     this.zoomedRangeMargin = {top: 75, right: 0, bottom: 25, left: 45};
-    this.fullRangeMargin = {top: 0, right: 0, bottom: 200, left: 45};
+    this.fullRangeMargin = {top: 0, right: 0, bottom: 210, left: 45};
     this.parseDate = d3.timeParse("%Y-%m-%d");
     this.data = null;
     this.stack = null;
@@ -75,7 +75,9 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
     this.xAxisZoom = d3.axisBottom(this.xZoomRange);
     this.xAxisFull = d3.axisBottom(this.xFullRange);
-    this.yAxisZoom = d3.axisLeft(this.yZoomRange);
+    this.yAxisZoom = d3.axisLeft(this.yZoomRange)
+            .ticks()
+            .tickSize(-this.zoomedRangeWidth, 0, 0);
 
     var self = this;
     this.brush = d3.brushX()
@@ -160,7 +162,6 @@ AccidentsTimeSerie.prototype.loadData = function () {
                 return d.max_moment;
             })]).nice();
 
-console.log(self.xZoomRange.domain());
         self.yZoomRange.domain([0, d3.max(data, function (d) {
                 return Math.max(d.totalAccidents, d.totalPeople);
             })]).nice();
@@ -179,7 +180,15 @@ console.log(self.xZoomRange.domain());
             .thresholds(self.xFullRange.ticks(data.length));
 
     self.stack = d3.stack().keys(['injuried', 'seriouslyInjuried', 'deaths', 'subsequentDeaths']);
-    self.redrawStack();
+
+    self.focusGraphic.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
+            .call(self.xAxisZoom);
+
+    self.focusGraphic.append("g")
+            .attr("class", "axis axis--y")
+            .call(self.yAxisZoom);
 
     self.focusGraphic.append("path")
             .datum(data)
@@ -191,14 +200,7 @@ console.log(self.xZoomRange.domain());
             .attr("stroke-width", 1)
             .attr("d", self.totalAccidentsLineZoom);
 
-    self.focusGraphic.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
-            .call(self.xAxisZoom);
-
-    self.focusGraphic.append("g")
-            .attr("class", "axis axis--y")
-            .call(self.yAxisZoom);
+    self.redrawStack();
 
     var bar = self.context.selectAll(".histogram")
             .data(data)

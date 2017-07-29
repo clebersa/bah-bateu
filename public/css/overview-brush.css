@@ -16,3 +16,13 @@
     fill: none;
     pointer-events: all;
 }
+
+.axis--y path, .axis--y line {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: 0;
+}
+.axis--y .tick line {
+    stroke: #bbb;
+    stroke-opacity: 1;
+}
