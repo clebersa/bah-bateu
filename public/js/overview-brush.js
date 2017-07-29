@@ -101,7 +101,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
     this.totalAccidentsLineFull = d3.line()
             .x(function (d) {
-                return self.xFullRange(d.min_moment);
+                return self.xFullRange(new Date(d.min_moment.getTime() + (d.max_moment - d.min_moment) / 2));
             })
             .y(function (d) {
                 return self.yFullRange(d.totalAccidents);
@@ -109,7 +109,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
     this.totalAccidentsLineZoom = d3.line()
             .x(function (d) {
-                return self.xZoomRange(d.min_moment);
+                return self.xZoomRange(new Date(d.min_moment.getTime() + (d.max_moment - d.min_moment) / 2));
             })
             .y(function (d) {
                 return self.yZoomRange(d.totalAccidents);
@@ -157,7 +157,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
                 return d.min_moment;
             }), d3.max(data, function (d) {
                 return d.max_moment;
-            })]);
+            })]).nice();
 
 console.log(self.xZoomRange.domain());
         self.yZoomRange.domain([0, d3.max(data, function (d) {
