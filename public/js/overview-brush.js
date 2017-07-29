@@ -1,12 +1,18 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 75, right: 0, bottom: 25, left: 45};
+    this.zoomedRangeMargin = {top: 75, right: 0, bottom: 55, left: 45};
     this.fullRangeMargin = {top: 0, right: 0, bottom: 210, left: 45};
     this.parseDate = d3.timeParse("%Y-%m-%d");
+    this.stackLegendWidth = 115;
     this.data = null;
-    this.stack = null;
     this.isDomainDefined = false;
-    this.colorScale = d3.scaleOrdinal(d3.schemeCategory20);
+    this.stackMap = {injuried: 'Injuried',
+        seriouslyInjuried: 'Seriously Injuried',
+        deaths: 'Deaths',
+        subsequentDeaths: 'Subsequent Deaths'
+    };
+    this.stack = d3.stack().keys(Object.keys(this.stackMap));
+    this.colorScale = d3.scaleOrdinal(['#1b9e77', '#d95f02', '#7570b3', '#e7298a']);
 
     this.xZoomRange = d3.scaleTime();
     this.xFullRange = d3.scaleTime();
@@ -30,7 +36,7 @@ function AccidentsTimeSerie() {
                     record.seriouslyInjuried = +record.seriouslyInjuried;
                     record.deaths = +record.deaths;
                     record.subsequentDeaths = +record.subsequentDeaths;
-                   record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
+                    record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
                 });
 
                 self.data = result;
@@ -51,7 +57,7 @@ function AccidentsTimeSerie() {
 }
 
 AccidentsTimeSerie.prototype.drawBase = function () {
-    const minWidth = 400;
+    const minWidth = Math.max((this.stackLegendWidth * 4) + this.zoomedRangeMargin.left, 400);
     if ($('div .overview').width() < minWidth) {
         $('div .overview').addClass('pre-scrollable');
         return false;
@@ -150,7 +156,6 @@ AccidentsTimeSerie.prototype.drawBase = function () {
 
 AccidentsTimeSerie.prototype.loadData = function () {
     var self = this;
-    var type = null;
     if (!this.data) {
         console.log("data was not retrieved yet.");
         return;
@@ -181,8 +186,6 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .domain(self.xFullRange.domain())
             .thresholds(self.xFullRange.ticks(data.length));
 
-    self.stack = d3.stack().keys(['injuried', 'seriouslyInjuried', 'deaths', 'subsequentDeaths']);
-
     self.focusGraphic.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
@@ -191,6 +194,8 @@ AccidentsTimeSerie.prototype.loadData = function () {
     self.focusGraphic.append("g")
             .attr("class", "axis axis--y")
             .call(self.yAxisZoom);
+
+    self.redrawStack();
 
     self.focusGraphic.append("path")
             .datum(data)
@@ -201,8 +206,6 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1)
             .attr("d", self.totalAccidentsLineZoom);
-
-    self.redrawStack();
 
     var bar = self.context.selectAll(".histogram")
             .data(data)
@@ -249,12 +252,35 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("height", self.zoomedRangeHeight)
             .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
             .call(self.zoom);
+
+    var legend = self.focusGraphic.append("g")
+            .attr("font-size", 10)
+            //.attr("text-anchor", "center")
+            .selectAll("g")
+            .data(Object.keys(self.stackMap))
+            .enter().append("g")
+            .attr("transform", function (d, i, data) {
+                return "translate(" + ((self.zoomedRangeWidth / 2) + ((i - data.length / 2) * 115)) + ", " + (self.zoomedRangeHeight + 30) + ")";
+            });
+
+    legend.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", 15)
+            .attr("height", 15)
+            .attr("fill", self.colorScale);
+
+    legend.append("text")
+            .attr("x", 20)
+            .attr("y", 7.5)
+            .attr("dy", "0.32em")
+            .text(function (d) {
+                return self.stackMap[d];
+            });
 }
 
 AccidentsTimeSerie.prototype.redrawStack = function () {
-    console.log("redrawStack");
     var self = this;
-    var stackWidth = Math.abs((self.xZoomRange(this.data[this.data.length - 1].min_moment) - self.xZoomRange(this.data[0].min_moment)) / this.data.length) * 0.95;
     self.focusGraphic.selectAll(".serie").remove();
     self.focusGraphic.selectAll(".serie")
             .data(self.stack(self.data))
