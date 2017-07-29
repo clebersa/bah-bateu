@@ -141,6 +141,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
         return;
     }
     this.data.forEach(function (record) {
+        record.max_moment = self.parseDate(record.max_moment);
         record.min_moment = self.parseDate(record.min_moment);
         record.totalAccidents = +record.totalAccidents;
         record.injuried = +record.injuried;
@@ -180,7 +181,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("stroke", "red")
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
-            .attr("stroke-width", 2)
+            .attr("stroke-width", 1)
             .attr("d", self.totalAccidentsLineZoom);
 
     self.focusGraphic.append("g")
@@ -260,13 +261,14 @@ AccidentsTimeSerie.prototype.redrawStack = function () {
                 return self.xZoomRange(d.data.min_moment);
             })
             .attr("y", function (d) {
-                console.log(d);
                 return self.yZoomRange(d[1]);
             })
             .attr("height", function (d) {
                 return self.yZoomRange(d[0]) - self.yZoomRange(d[1]);
             })
-            .attr("width", stackWidth);
+            .attr("width", function(d){
+                return (self.xZoomRange(d.data.max_moment) - self.xZoomRange(d.data.min_moment)) * 0.95;
+            });
 }
 
 var accidentsTimeSerie = new AccidentsTimeSerie();
