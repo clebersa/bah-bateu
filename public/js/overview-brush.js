@@ -75,7 +75,6 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 console.log('+++++ brushed +++++');
                 var s = d3.event.selection || self.xFullRange.range();
                 self.xZoomRange.domain(s.map(self.xFullRange.invert, self.xFullRange));
-                self.focusGraphic.select(".area").attr("d", self.areaZoom);
                 self.redrawStack();
                 self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLineZoom);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
@@ -94,7 +93,6 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 console.log('--- zoomed ---');
                 var t = d3.event.transform;
                 self.xZoomRange.domain(t.rescaleX(self.xFullRange).domain());
-                self.focusGraphic.select(".area").attr("d", self.areaZoom);
                 self.redrawStack();
                 self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLineZoom);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
@@ -107,16 +105,6 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             })
             .y(function (d) {
                 return self.yFullRange(d.totalAccidents);
-            });
-
-    this.areaZoom = d3.area()
-            .curve(d3.curveMonotoneX)
-            .x(function (d) {
-                return self.xZoomRange(d.min_moment);
-            })
-            .y0(this.zoomedRangeHeight)
-            .y1(function (d) {
-                return self.yZoomRange(d.totalAccidents);
             });
 
     this.totalAccidentsLineZoom = d3.line()
@@ -154,10 +142,12 @@ AccidentsTimeSerie.prototype.loadData = function () {
     }
     this.data.forEach(function (record) {
         record.min_moment = self.parseDate(record.min_moment);
-        record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
+        record.totalAccidents = +record.totalAccidents;
         record.injuried = +record.injuried;
         record.seriouslyInjuried = +record.seriouslyInjuried;
         record.deaths = +record.deaths;
+        record.subsequentDeaths = +record.subsequentDeaths;
+        record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
     });
     var data = self.data;
     self.zoom.scaleExtent([1, data.length]);
@@ -210,11 +200,13 @@ AccidentsTimeSerie.prototype.loadData = function () {
                 return "translate(" + self.xFullRange(d.min_moment) + "," + self.yFullRange(d.totalPeople) + ")";
             });
 
-    var histogramBarWidth = self.xFullRange(self.involvedPeopleHistogram(data)[0].x1)
-            - self.xFullRange(self.involvedPeopleHistogram(data)[0].x0);
+    var histogramThresholds = self.involvedPeopleHistogram(data);
     bar.append("rect")
             .attr("x", 1)
-            .attr("width", histogramBarWidth)
+            .attr("width", function (d, i) {
+                return self.xFullRange(histogramThresholds[i].x1)
+                        - self.xFullRange(histogramThresholds[i].x0);
+            })
             .attr("height", function (d) {
                 return self.fullRangeHeight - self.yFullRange(d.totalPeople);
             });
