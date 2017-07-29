@@ -34,7 +34,9 @@ function AccidentsTimeSerie() {
                 });
 
                 self.data = result;
-                self.loadData();
+                if (self.drawBase()) {
+                    self.loadData();
+                }
             }});
     });
 
