@@ -6,7 +6,7 @@ function AccidentsMap() {
     this.accidentInfoBoxDefaultTitle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
     this.accidentInfoBoxDefaultBody = "<br/><br/><br/>"
 
-    $("#map").height(300);
+    $("#map").height(600);
 
     var self = this;
     $("#heatMapButton").click(function () {
@@ -44,10 +44,9 @@ AccidentsMap.prototype.retrieveData = function () {
                 return coordinate.longitude;
             }));
 
-            var centralLatitude = (maxLatitude + minLatitude) / 2;
-            var centralLongitude = (maxLongitude + minLongitude) / 2;
-
-            self.map.setCenter({lat: centralLatitude, lng: centralLongitude});
+            self.map.fitBounds(new google.maps.LatLngBounds(
+                    new google.maps.LatLng(minLatitude, minLongitude),
+                    new google.maps.LatLng(maxLatitude, maxLongitude)));
 
             self.loadLayers();
 
@@ -94,7 +93,7 @@ AccidentsMap.prototype.showPoints = function () {
 AccidentsMap.prototype.initMap = function () {
     console.log("loading map");
     this.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 10,
+        zoom: 11,
         center: {lat: -30.033056, lng: -51.23},
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
@@ -180,7 +179,7 @@ AccidentsMap.prototype.loadLayers = function () {
         });
         return marker;
     });
-    if(this.markerCluster == null){
+    if (this.markerCluster == null) {
         // Add a marker clusterer to manage the markers.
         this.markerCluster = new MarkerClusterer(this.map, this.markers,
                 {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
