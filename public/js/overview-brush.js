@@ -201,7 +201,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .datum(data)
             .attr("class", "lineTotal")
             .attr("fill", "none")
-            .attr("stroke", "red")
+            .attr("stroke", "#e41a1c")
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1)
@@ -253,14 +253,17 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
             .on("mousedown", function (d) {
                 self.tooltip.style("display", "none");
+                self.dotTotalAccidents.style("display", "none");
             })
             .on("mouseout", function () {
                 self.tooltip.style("display", "none");
+                self.dotTotalAccidents.style("display", "none");
             })
             .on("mousemove", function (d) {
                 var date = self.xZoomRange.invert(d3.mouse(this)[0]);
                 var record = null;
                 self.tooltip.style("display", null);
+                self.dotTotalAccidents.style("display", null);
                 if (record === null || date.getTime() < record.min_moment.getTime() || date.getTime() > record.max_moment.getTime()) {
                     self.data.forEach(function (element) {
                         if (date.getTime() >= element.min_moment.getTime() && date.getTime() <= element.max_moment.getTime()) {
@@ -277,6 +280,8 @@ AccidentsTimeSerie.prototype.loadData = function () {
                     Object.keys(self.stackMap).forEach(function(key) {
                         self.tooltip.select("text.label-tooltip-" + key).text(record[key]);
                     });
+                    self.dotTotalAccidents.attr("cx", self.xZoomRange(new Date(record.min_moment.getTime() + (record.max_moment - record.min_moment) / 2)));
+                    self.dotTotalAccidents.attr("cy", self.yZoomRange(record.totalAccidents));
                 } else {
                     console.log("record is null");
                 }
@@ -309,6 +314,13 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("dy", "1.0em")
             .style("text-anchor", "middle")
             .attr("font-weight", "bold");
+
+    self.dotTotalAccidents = self.focusGraphic.append("circle")
+            .attr("r", 3)
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .style("fill", "#e41a1c")
+            .style("display", "none");
 
     var legend = self.focusGraphic.append("g")
             .attr("font-size", 10)
