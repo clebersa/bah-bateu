@@ -251,18 +251,16 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("width", self.zoomedRangeWidth)
             .attr("height", self.zoomedRangeHeight)
             .attr("transform", "translate(" + self.zoomedRangeMargin.left + "," + self.zoomedRangeMargin.top + ")")
-            .on("mouseover", function (d) {
-                console.log("mouseover");
-                self.tooltip.style("display", null);
+            .on("mousedown", function (d) {
+                self.tooltip.style("display", "none");
             })
             .on("mouseout", function () {
-                console.log("mouseout");
                 self.tooltip.style("display", "none");
             })
             .on("mousemove", function (d) {
-                console.log("mousemove");
                 var date = self.xZoomRange.invert(d3.mouse(this)[0]);
                 var record = null;
+                self.tooltip.style("display", null);
                 if (record === null || date.getTime() < record.min_moment.getTime() || date.getTime() > record.max_moment.getTime()) {
                     self.data.forEach(function (element) {
                         if (date.getTime() >= element.min_moment.getTime() && date.getTime() <= element.max_moment.getTime()) {
@@ -272,29 +270,41 @@ AccidentsTimeSerie.prototype.loadData = function () {
                     });
                 }
                 if(record !== null){
-                    self.tooltip.attr("transform", "translate(" + d3.mouse(this)[0] + "," + d3.mouse(this)[1] + ")");
-                    self.tooltip.select("text").text("record.totalAccidents");
+                    self.tooltip.attr("transform", "translate(" + (d3.mouse(this)[0] - 15) + "," + (d3.mouse(this)[1] - 65) + ")");
+                    Object.keys(self.stackMap).forEach(function(key) {
+                        self.tooltip.select("text.label-tooltip-" + key).text(record[key]);
+                    });
                 } else {
                     console.log("record is null");
                 }
             })
             .call(self.zoom);
 
-    self.tooltip = self.svg.append("g")
+    self.tooltip = self.focusGraphic.append("g")
             .attr("class", "tooltip")
+            .style("opacity", 1)
             .style("display", "none");
 
     self.tooltip.append("rect")
             .attr("width", 30)
-            .attr("height", 20)
+            .attr("height", 60)
             .attr("fill", "white")
-            .style("opacity", 0.5);
+            .style("opacity", 0.75);
 
-    self.tooltip.append("text")
+    self.tooltip.selectAll("text")
+            .data(Object.keys(self.stackMap).reverse()).enter()
+            .append("text")
             .attr("x", 15)
-            .attr("dy", "1.2em")
+            .attr("y", function (d, i) {
+                return i * 15;
+            })
+            .text("-")
+            .attr("class", function (d) {
+                return "label-tooltip-" + d;
+            })
+            .attr("fill", self.colorScale)
+            .attr("dy", "1.0em")
             .style("text-anchor", "middle")
-            .attr("font-size", "12px")
             .attr("font-weight", "bold");
 
     var legend = self.focusGraphic.append("g")
@@ -349,20 +359,6 @@ AccidentsTimeSerie.prototype.redrawStack = function () {
             })
             .attr("width", function (d) {
                 return (self.xZoomRange(d.data.max_moment) - self.xZoomRange(d.data.min_moment)) * 0.95;
-            }).on("mouseover", function () {
-        console.log("mouseover");
-        //tooltip.style("display", null);
-    })
-            .on("mouseout", function () {
-                console.log("mouseout");
-                //      tooltip.style("display", "none");
-            })
-            .on("mousemove", function (d) {
-                console.log("mousemove");
-                //    var xPosition = d3.mouse(this)[0] - 15;
-                //  var yPosition = d3.mouse(this)[1] - 25;
-                //tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                //tooltip.select("text").text(d.y);
             });
 }
 
