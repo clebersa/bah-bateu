@@ -126,6 +126,9 @@ AccidentsTimeSerie.prototype.drawBase = function () {
             })
             .y(function (d) {
                 return self.yFullRange(d.totalAccidents);
+            })
+            .defined(function (d) {
+                return d;
             });
 
     this.totalAccidentsLineZoom = d3.line()
@@ -219,8 +222,12 @@ AccidentsTimeSerie.prototype.loadData = function () {
     bar.append("rect")
             .attr("x", 1)
             .attr("width", function (d, i) {
-                return self.xFullRange(histogramThresholds[i].x1)
-                        - self.xFullRange(histogramThresholds[i].x0);
+                if (histogramThresholds[i] == null) {
+                    return 0;
+                } else {
+                    return self.xFullRange(histogramThresholds[i].x1)
+                            - self.xFullRange(histogramThresholds[i].x0);
+                }
             })
             .attr("height", function (d) {
                 return self.fullRangeHeight - self.yFullRange(d.totalPeople);
@@ -272,18 +279,19 @@ AccidentsTimeSerie.prototype.loadData = function () {
                         }
                     });
                 }
-                if(record !== null){
+                if (record !== null) {
                     var tooltipX = Math.max((d3.mouse(this)[0] - 15), 0);
                     tooltipX = Math.min(tooltipX, self.zoomedRangeWidth - 30);
                     var tooltipY = Math.max((d3.mouse(this)[1] - 65), 0);
                     self.tooltip.attr("transform", "translate(" + tooltipX + "," + tooltipY + ")");
-                    Object.keys(self.stackMap).forEach(function(key) {
+                    Object.keys(self.stackMap).forEach(function (key) {
                         self.tooltip.select("text.label-tooltip-" + key).text(record[key]);
                     });
                     self.dotTotalAccidents.attr("cx", self.xZoomRange(new Date(record.min_moment.getTime() + (record.max_moment - record.min_moment) / 2)));
                     self.dotTotalAccidents.attr("cy", self.yZoomRange(record.totalAccidents));
                 } else {
-                    console.log("record is null");
+                    self.tooltip.style("display", "none");
+                    self.dotTotalAccidents.style("display", "none");
                 }
             })
             .call(self.zoom);
