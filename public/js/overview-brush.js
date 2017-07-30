@@ -270,7 +270,10 @@ AccidentsTimeSerie.prototype.loadData = function () {
                     });
                 }
                 if(record !== null){
-                    self.tooltip.attr("transform", "translate(" + (d3.mouse(this)[0] - 15) + "," + (d3.mouse(this)[1] - 65) + ")");
+                    var tooltipX = Math.max((d3.mouse(this)[0] - 15), 0);
+                    tooltipX = Math.min(tooltipX, self.zoomedRangeWidth - 30);
+                    var tooltipY = Math.max((d3.mouse(this)[1] - 65), 0);
+                    self.tooltip.attr("transform", "translate(" + tooltipX + "," + tooltipY + ")");
                     Object.keys(self.stackMap).forEach(function(key) {
                         self.tooltip.select("text.label-tooltip-" + key).text(record[key]);
                     });
