@@ -139,8 +139,6 @@ AccidentsMap.prototype.initMap = function () {
 
     var self = this;
     google.maps.event.addListener(this.map, "click", function (event) {
-        console.log("click");
-        console.log(self.infoWindow);
         self.infoWindow.customClose();
     });
 }
