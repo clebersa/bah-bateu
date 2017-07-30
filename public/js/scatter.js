@@ -3,27 +3,30 @@ function VehicleScatterPlot() {
     this.chartData = null;
 
     var self = this;
-    $("#reloaderBtn2").click(function () {
-        $.ajax({url: '/bah-bateu/',
-            type: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                chart: 'scatter'
-            },
-            dataType: 'JSON',
-            success: function (result) {
-                self.chartData = result;
-                self.loadData();
-            }});
-    });
 
     new ResizeSensor(jQuery('div .scatterContainer'), function () {
         if (self.drawBase()) {
             self.loadData();
         }
     });
-    
+
     $('div .scatter').height(300);
+}
+
+VehicleScatterPlot.prototype.updateChart = function () {
+    var self = this;
+    $.ajax({url: '/bah-bateu/',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            chart: 'scatter',
+            filters: JSON.stringify(filters)
+        },
+        dataType: 'JSON',
+        success: function (result) {
+            self.chartData = result;
+            self.loadData();
+        }});
 }
 
 VehicleScatterPlot.prototype.drawBase = function () {

@@ -2,6 +2,7 @@ function AccidentsMap() {
     this.accidentsInfo = null;
     this.accidentsLocations = null;
     this.heatMapLayer = null;
+    this.callbackFunctionName = null;
     this.accidentInfoBoxDefaultTitle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
     this.accidentInfoBoxDefaultBody = "<br/><br/><br/>"
 
@@ -16,13 +17,14 @@ function AccidentsMap() {
     });
 }
 
-AccidentsMap.prototype.retrieveData = function (callbackFunctionName) {
+AccidentsMap.prototype.retrieveData = function () {
     var self = this;
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
             _token: $('meta[name="csrf-token"]').attr('content'),
-            chart: 'googlemaps'
+            chart: 'googlemaps',
+            filters: JSON.stringify(filters)
         },
         dataType: 'JSON',
         success: function (result) {
@@ -48,7 +50,12 @@ AccidentsMap.prototype.retrieveData = function (callbackFunctionName) {
             self.map.setCenter({lat: centralLatitude, lng: centralLongitude});
 
             self.loadLayers();
-            self[callbackFunctionName]();
+
+            if (self.callbackFunctionName === null) {
+                self.showHeatMap();
+            } else {
+                self[self.callbackFunctionName]();
+            }
         },
         error: function (result) {
             console.log("error for google maps");
@@ -58,8 +65,9 @@ AccidentsMap.prototype.retrieveData = function (callbackFunctionName) {
 }
 
 AccidentsMap.prototype.showHeatMap = function () {
+    this.callbackFunctionName = "showHeatMap";
     if (this.accidentsLocations === null) {
-        this.retrieveData("showHeatMap");
+        this.retrieveData();
     } else {
         $("#pointsButton").removeClass("text-bold");
         $("#heatMapButton").addClass("text-bold");
@@ -69,8 +77,9 @@ AccidentsMap.prototype.showHeatMap = function () {
 }
 
 AccidentsMap.prototype.showPoints = function () {
+    this.callbackFunctionName = "showPoints";
     if (this.accidentsLocations === null) {
-        this.retrieveData("showPoints");
+        this.retrieveData();
     } else {
         $("#heatMapButton").removeClass("text-bold");
         $("#pointsButton").addClass("text-bold");
@@ -92,20 +101,23 @@ AccidentsMap.prototype.initMap = function () {
 }
 
 AccidentsMap.prototype.loadLayers = function () {
-    var points = [];
+    if (this.heatMapLayer == null) {
+        this.heatMapLayer = new google.maps.visualization.HeatmapLayer({
+            data: new google.maps.MVCArray(),
+            map: this.map,
+            opacity: 0.75
+        });
+    }
+    this.heatMapLayer.getData().clear();
+
+    var self = this;
     $.each(this.accidentsLocations, function (index, accidentLocation) {
-        points.push({
+        self.heatMapLayer.getData().push({
             location: new google.maps.LatLng(
                     accidentLocation.latitude,
                     accidentLocation.longitude),
             weight: accidentLocation.total
         });
-    });
-
-    this.heatMapLayer = new google.maps.visualization.HeatmapLayer({
-        data: points,
-        map: this.map,
-        opacity: 0.75
     });
 
     var infoWindowBaseContent =
@@ -121,7 +133,7 @@ AccidentsMap.prototype.loadLayers = function () {
     this.infoWindow = new google.maps.InfoWindow({
         content: infoWindowBaseContent
     });
-    var self = this;
+
     this.markers = this.accidentsLocations.map(function (location, i) {
         var marker = new google.maps.Marker({
             position: {lat: location.latitude, lng: location.longitude},

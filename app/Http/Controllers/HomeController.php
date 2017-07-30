@@ -11,39 +11,40 @@ use App\Http\Requests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Database\GeneralDAO;
+
 /**
  * Class HomeController
  * @package App\Http\Controllers
  */
-class HomeController extends Controller
-{
+class HomeController extends Controller {
+
     /**
      * Show the application dashboard.
      *
      * @return Response
      */
-    public function index()
-    {
+    public function index() {
         return view('home');
     }
-    
-    public function getData(Request $request){
+
+    public function getData(Request $request) {
         Log::info("loading data");
         $chart = $request->input('chart');
         $filters = $request->input('filters');
         $generalDAO = new GeneralDAO();
-        if($chart == 'overview'){
+        if ($chart == 'overview') {
             $result = $generalDAO->getOverviewData();
-        } else if($chart == 'heatmap'){
+        } else if ($chart == 'heatmap') {
             $result = $generalDAO->getDataHeatmap($filters);
-        } else if($chart == 'scatter'){
+        } else if ($chart == 'scatter') {
             $result = $generalDAO->getScatterPlotData();
-        } else if($chart == 'googlemaps'){
-            $result = $generalDAO->getGeographicHeatmap();
-        } else if($chart == 'infowindow'){
+        } else if ($chart == 'googlemaps') {
+            $result = $generalDAO->getGeographicHeatmap($filters);
+        } else if ($chart == 'infowindow') {
             $result = $generalDAO->getAccidentsByPosition($request->input('latitude'), $request->input('longitude'));
         }
-        
+
         return json_encode($result);
     }
+
 }

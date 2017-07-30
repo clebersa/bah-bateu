@@ -21,4 +21,6 @@ function updateCharts(){
     console.log("update charts");
     console.log(this.filters);
     this.weekDayTimeHeatmap.updateChart();
+    this.vehicleScatterPlot.updateChart();
+    this.accidentsMap.retrieveData();
 }
