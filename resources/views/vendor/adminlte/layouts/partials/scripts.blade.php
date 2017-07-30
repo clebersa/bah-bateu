@@ -17,6 +17,7 @@
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCeltywxFHg7y0adXIu0X9fqjjbmkmVEck&libraries=visualization&callback=accidentsMap.initMap">
 </script>
+<script src="{{ url ('/js/bah-bateu.js') }}" type="text/javascript"></script>
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
       Both of these plugins are recommended to enhance the
       user experience. Slimscroll is required when using the

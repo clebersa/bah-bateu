@@ -30,11 +30,12 @@ class HomeController extends Controller
     public function getData(Request $request){
         Log::info("loading data");
         $chart = $request->input('chart');
+        $filters = $request->input('filters');
         $generalDAO = new GeneralDAO();
         if($chart == 'overview'){
             $result = $generalDAO->getOverviewData();
         } else if($chart == 'heatmap'){
-            $result = $generalDAO->getDataHeatmap();
+            $result = $generalDAO->getDataHeatmap($filters);
         } else if($chart == 'scatter'){
             $result = $generalDAO->getScatterPlotData();
         } else if($chart == 'googlemaps'){

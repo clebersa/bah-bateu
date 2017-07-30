@@ -211,5 +211,3 @@ AccidentsMap.prototype.updateAccidentDetailsBox = function (accidentInfoIndex) {
 
     $("#accidentsInfoBoxBody").html(content);
 }
-
-var accidentsMap = new AccidentsMap();

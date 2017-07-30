@@ -19,33 +19,6 @@ function AccidentsTimeSerie() {
     this.yZoomRange = d3.scaleLinear();
     this.yFullRange = d3.scaleLinear();
 
-    $("#getDataOverview").click(function () {
-        $.ajax({url: '/bah-bateu/',
-            type: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                chart: 'overview'
-            },
-            dataType: 'JSON',
-            success: function (result) {
-                result.forEach(function (record) {
-                    record.max_moment = self.parseDate(record.max_moment);
-                    record.min_moment = self.parseDate(record.min_moment);
-                    record.totalAccidents = +record.totalAccidents;
-                    record.injuried = +record.injuried;
-                    record.seriouslyInjuried = +record.seriouslyInjuried;
-                    record.deaths = +record.deaths;
-                    record.subsequentDeaths = +record.subsequentDeaths;
-                    record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
-                });
-
-                self.data = result;
-                if (self.drawBase()) {
-                    self.loadData();
-                }
-            }});
-    });
-
     var self = this;
     new ResizeSensor(jQuery('div .overviewContainer'), function () {
         if (self.drawBase()) {
@@ -54,6 +27,35 @@ function AccidentsTimeSerie() {
     });
 
     $('div .overview').height(this.height);
+}
+
+AccidentsTimeSerie.prototype.init = function () {
+    var self = this;
+    $.ajax({url: '/bah-bateu/',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            chart: 'overview',
+            filters: filters
+        },
+        dataType: 'JSON',
+        success: function (result) {
+            result.forEach(function (record) {
+                record.max_moment = self.parseDate(record.max_moment);
+                record.min_moment = self.parseDate(record.min_moment);
+                record.totalAccidents = +record.totalAccidents;
+                record.injuried = +record.injuried;
+                record.seriouslyInjuried = +record.seriouslyInjuried;
+                record.deaths = +record.deaths;
+                record.subsequentDeaths = +record.subsequentDeaths;
+                record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
+            });
+
+            self.data = result;
+            if (self.drawBase()) {
+                self.loadData();
+            }
+        }});
 }
 
 AccidentsTimeSerie.prototype.drawBase = function () {
@@ -96,6 +98,15 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 console.log('+++++ brushed +++++');
                 var s = d3.event.selection || self.xFullRange.range();
                 self.xZoomRange.domain(s.map(self.xFullRange.invert, self.xFullRange));
+
+                if (filters.startDate == null || filters.endDate == null) {
+                    shouldUpdate = true;
+                    filters.startDate = self.xZoomRange.domain()[0];
+                    filters.endDate = self.xZoomRange.domain()[1];
+                    console.log("updateStartDate")
+                    updateCharts();
+                }
+
                 self.redrawStack();
                 self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLineZoom);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
@@ -114,6 +125,21 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 console.log('--- zoomed ---');
                 var t = d3.event.transform;
                 self.xZoomRange.domain(t.rescaleX(self.xFullRange).domain());
+                var shouldUpdate = false;
+                if (filters.startDate.getTime() != self.xZoomRange.domain()[0].getTime()) {
+                    shouldUpdate = true;
+                    filters.startDate = self.xZoomRange.domain()[0];
+                    console.log("updateStartDate")
+                }
+                if (filters.endDate.getTime() != self.xZoomRange.domain()[1].getTime()) {
+                    shouldUpdate = true;
+                    filters.endDate = self.xZoomRange.domain()[1];
+                    console.log("updateStartDate")
+                }
+
+                if (shouldUpdate) {
+                    updateCharts();
+                }
                 self.redrawStack();
                 self.focusGraphic.select(".lineTotal").attr("d", self.totalAccidentsLineZoom);
                 self.focusGraphic.select(".axis--x").call(self.xAxisZoom);
@@ -384,6 +410,3 @@ AccidentsTimeSerie.prototype.redrawStack = function () {
                 return (self.xZoomRange(d.data.max_moment) - self.xZoomRange(d.data.min_moment)) * 0.95;
             });
 }
-
-var accidentsTimeSerie = new AccidentsTimeSerie();
-accidentsTimeSerie.drawBase();

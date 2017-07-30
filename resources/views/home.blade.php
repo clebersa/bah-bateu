@@ -18,8 +18,6 @@
                 Parallel Sets
             </div>
             <div class="col-lg-12 heatmapContainer no-padding" style="border-style: solid;">
-                <button class="btn btn-primary" id="reloaderBtn">Reload Data</button>
-                <button class="btn btn-primary" id="getDataOverview">GetData Overview</button>
                 <div class="heatmap col-lg-12"></div>
             </div>
         </div>

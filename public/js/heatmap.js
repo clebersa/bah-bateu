@@ -3,29 +3,30 @@ function WeekDayTimeHeatmap() {
     this.chartData = null;
 
     var self = this;
-    $("#reloaderBtn").click(function () {
-        $.ajax({url: '/bah-bateu/',
-            type: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                chart: 'heatmap'
-            },
-            dataType: 'JSON',
-            success: function (result) {
-                self.chartData = result;
-                self.loadData();
-            }});
-    });
-
     new ResizeSensor(jQuery('div .heatmapContainer'), function () {
         if (self.drawBase()) {
             self.loadData();
         }
     });
-    
+
     $('div .heatmap').height(250);
 }
 
+WeekDayTimeHeatmap.prototype.updateChart = function () {
+    var self = this;
+    $.ajax({url: '/bah-bateu/',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            chart: 'heatmap',
+            filters: JSON.stringify(filters)
+        },
+        dataType: 'JSON',
+        success: function (result) {
+            self.chartData = result;
+            self.loadData();
+        }});
+}
 WeekDayTimeHeatmap.prototype.drawBase = function () {
     const minWidth = 400;
     const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -145,6 +146,3 @@ WeekDayTimeHeatmap.prototype.loadData = function () {
 
     legend.exit().remove();
 }
-
-var weekDayTimeHeatmap = new WeekDayTimeHeatmap();
-weekDayTimeHeatmap.drawBase();
