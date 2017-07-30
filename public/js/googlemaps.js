@@ -180,9 +180,14 @@ AccidentsMap.prototype.loadLayers = function () {
         });
         return marker;
     });
-    // Add a marker clusterer to manage the markers.
-    this.markerCluster = new MarkerClusterer(this.map, this.markers,
-            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+    if(this.markerCluster == null){
+        // Add a marker clusterer to manage the markers.
+        this.markerCluster = new MarkerClusterer(this.map, this.markers,
+                {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+        this.markerCluster.setMaxZoom(20);
+    }
+    this.markerCluster.clearMarkers();
+    this.markerCluster.addMarkers(this.markers);
 }
 
 AccidentsMap.prototype.retrieveInfoWindowContent = function () {
