@@ -96,8 +96,19 @@ class GeneralDAO {
         return $data;
     }
 
-    public function getAccidentsByPosition($latitude, $longitude) {
-        return DB::select("SELECT ID AS 'id', LOCAL_VIA AS 'location', MOMENTO AS 'moment', BOLETIM AS 'report_id', CONSORCIO as `consortium` FROM `accidents` WHERE LATITUDE = '$latitude' AND LONGITUDE = '$longitude' ORDER BY MOMENTO");
+    public function getAccidentsByPosition($filters) {
+        $query = "SELECT ID AS 'id', "
+                . "  LOCAL_VIA AS 'location', "
+                . "  MOMENTO AS 'moment', "
+                . "  BOLETIM AS 'report_id', "
+                . "  CONSORCIO as `consortium` "
+                . "FROM `accidents` " . $this->parseFilters($filters)
+                . "ORDER BY MOMENTO";
+        Log::debug($query);
+
+        $data = DB::select($query);
+        Log::info(count($data) . " records retrieved for infowindow.");
+        return $data;
     }
 
     public function parseFilters($filters, $keysToIgnore = []) {
@@ -107,11 +118,19 @@ class GeneralDAO {
             unset($filters[$key]);
         }
         foreach ($filters as $key => $value) {
-            if ($key == 'startDate') {
-                $sqlFilters[] = "`accidents`.`MOMENTO` >= '" . $value . "'";
-            }
-            if ($key == 'endDate') {
-                $sqlFilters[] = "`accidents`.`MOMENTO` <= '" . $value . "'";
+            if ($value != NULL) {
+                if ($key == 'startDate') {
+                    $sqlFilters[] = "`accidents`.`MOMENTO` >= '" . $value . "'";
+                }
+                if ($key == 'endDate') {
+                    $sqlFilters[] = "`accidents`.`MOMENTO` <= '" . $value . "'";
+                }
+                if ($key == 'latitude') {
+                    $sqlFilters[] = "`accidents`.`LATITUDE` = '" . $value . "'";
+                }
+                if ($key == 'longitude') {
+                    $sqlFilters[] = "`accidents`.`LONGITUDE` = '" . $value . "'";
+                }
             }
         }
         if (count($sqlFilters) > 0) {

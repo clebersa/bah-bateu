@@ -98,6 +98,51 @@ AccidentsMap.prototype.initMap = function () {
         center: {lat: -30.033056, lng: -51.23},
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
+
+    var infoWindowBaseContent =
+            '<div class="box box-solid no-margin">'
+            + '  <div class="box-header">'
+            + '    <h3 class="box-title" id="accidentsInfoBoxTitle">' + this.accidentInfoBoxDefaultTitle + '</h3>'
+            + '  </div>'
+            + '  <div class="box-body no-padding" id="accidentsInfoBoxBody">' + this.accidentInfoBoxDefaultBody + '</div>'
+            + '  <div class="overlay" id="accidentsInfoBoxOverlay">'
+            + '    <i class="fa fa-refresh fa-spin"></i>'
+            + '  </div>'
+            + '</div>';
+    this.infoWindow = new google.maps.InfoWindow({
+        content: infoWindowBaseContent
+    });
+    this.infoWindow.opened = false;
+    google.maps.InfoWindow.prototype.customOpen = function (map, anchor) {
+        this.opened = true;
+        this.open(map, anchor);
+    }
+    google.maps.InfoWindow.prototype.customClose = function () {
+        if (this.getMap() !== null && typeof this.getMap() !== "undefined") {
+            this.close();
+        }
+        if (this.opened) {
+            this.opened = false;
+            filters.latitude = null;
+            filters.longitude = null;
+            updateCharts([VIEWS.MAPS]);
+        }
+
+    }
+    google.maps.InfoWindow.prototype.isOpen = function () {
+        var map = this.getMap();
+        return (map !== null && typeof map !== "undefined");
+    }
+    this.infoWindow.addListener("closeclick", function () {
+        this.customClose();
+    });
+
+    var self = this;
+    google.maps.event.addListener(this.map, "click", function (event) {
+        console.log("click");
+        console.log(self.infoWindow);
+        self.infoWindow.customClose();
+    });
 }
 
 AccidentsMap.prototype.loadLayers = function () {
@@ -120,20 +165,6 @@ AccidentsMap.prototype.loadLayers = function () {
         });
     });
 
-    var infoWindowBaseContent =
-            '<div class="box box-solid no-margin">'
-            + '  <div class="box-header">'
-            + '    <h3 class="box-title" id="accidentsInfoBoxTitle">' + this.accidentInfoBoxDefaultTitle + '</h3>'
-            + '  </div>'
-            + '  <div class="box-body no-padding" id="accidentsInfoBoxBody">' + this.accidentInfoBoxDefaultBody + '</div>'
-            + '  <div class="overlay" id="accidentsInfoBoxOverlay">'
-            + '    <i class="fa fa-refresh fa-spin"></i>'
-            + '  </div>'
-            + '</div>';
-    this.infoWindow = new google.maps.InfoWindow({
-        content: infoWindowBaseContent
-    });
-
     this.markers = this.accidentsLocations.map(function (location, i) {
         var marker = new google.maps.Marker({
             position: {lat: location.latitude, lng: location.longitude},
@@ -143,8 +174,11 @@ AccidentsMap.prototype.loadLayers = function () {
             if (typeof self.infoWindow !== 'undefined') {
                 self.infoWindow.close();
             }
-            self.infoWindow.open(self.map, marker);
-            self.retrieveInfoWindowContent(location.latitude, location.longitude)
+            self.infoWindow.customOpen(self.map, marker);
+            filters.latitude = location.latitude;
+            filters.longitude = location.longitude;
+            updateCharts([VIEWS.MAPS]);
+            self.retrieveInfoWindowContent();
         });
         return marker;
     });
@@ -153,7 +187,7 @@ AccidentsMap.prototype.loadLayers = function () {
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 }
 
-AccidentsMap.prototype.retrieveInfoWindowContent = function (latitude, longitude) {
+AccidentsMap.prototype.retrieveInfoWindowContent = function () {
     $("#accidentsInfoBoxOverlay").removeClass('hidden');
     $("#accidentsInfoBoxTitle").html(this.accidentInfoBoxDefaultTitle);
     $("#accidentsInfoBoxBody").html(this.accidentInfoBoxDefaultBody);
@@ -164,8 +198,7 @@ AccidentsMap.prototype.retrieveInfoWindowContent = function (latitude, longitude
         data: {
             _token: $('meta[name="csrf-token"]').attr('content'),
             chart: 'infowindow',
-            latitude: latitude,
-            longitude: longitude
+            filters: JSON.stringify(filters)
         },
         dataType: 'JSON',
         success: function (result) {
@@ -222,4 +255,5 @@ AccidentsMap.prototype.updateAccidentDetailsBox = function (accidentInfoIndex) {
     }
 
     $("#accidentsInfoBoxBody").html(content);
+    this.infoWindow.customOpen(this.map, this.infoWindow.anchor);
 }

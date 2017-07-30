@@ -28,8 +28,8 @@ class HomeController extends Controller {
     }
 
     public function getData(Request $request) {
-        Log::info("loading data");
         $chart = $request->input('chart');
+        Log::info("Processing request for chart: " . $chart);
         $filters = $request->input('filters');
         $generalDAO = new GeneralDAO();
         if ($chart == 'overview') {
@@ -41,7 +41,7 @@ class HomeController extends Controller {
         } else if ($chart == 'googlemaps') {
             $result = $generalDAO->getGeographicHeatmap($filters);
         } else if ($chart == 'infowindow') {
-            $result = $generalDAO->getAccidentsByPosition($request->input('latitude'), $request->input('longitude'));
+            $result = $generalDAO->getAccidentsByPosition($filters);
         }
 
         return json_encode($result);

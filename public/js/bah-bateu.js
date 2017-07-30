@@ -1,6 +1,18 @@
+const VIEWS = {
+    //OVERVIEW: 1,
+    DAY_HEATMAP: 2,
+    VEHICLE: 3,
+    MAPS: 4,
+}
 var filters = {
+
+    //filters from overview
     startDate: null,
-    endDate: null
+    endDate: null,
+
+    //filters from google maps
+    latitude: null,
+    longitude: null
 }
 var accidentsTimeSerie = new AccidentsTimeSerie();
 
@@ -17,10 +29,24 @@ accidentsTimeSerie.init();
 
 console.log("done");
 
-function updateCharts(){
+function updateCharts(ignore) {
+    if (!ignore) {
+        ignore = [];
+    }
+
     console.log("update charts");
     console.log(this.filters);
-    this.weekDayTimeHeatmap.updateChart();
-    this.vehicleScatterPlot.updateChart();
-    this.accidentsMap.retrieveData();
+
+    if (ignore.indexOf(VIEWS.DAY_HEATMAP) === -1) {
+        console.log("updating DAY HEATMAP");
+        this.weekDayTimeHeatmap.updateChart();
+    }
+    if (ignore.indexOf(VIEWS.VEHICLE) === -1) {
+        console.log("updating SCATTER PLOT");
+        this.vehicleScatterPlot.updateChart();
+    }
+    if (ignore.indexOf(VIEWS.MAPS) === -1) {
+        console.log("updating MAPS");
+        this.accidentsMap.retrieveData();
+    }
 }
