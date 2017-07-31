@@ -81,11 +81,11 @@ VehicleScatterPlot.prototype.loadData = function () {
     if (this.chartData === null)
         return;
     var xDomain = d3.map(this.chartData, function (d) {
-            return d.type;
-        }).keys().reverse();
+        return d.type;
+    }).keys().reverse();
     this.yRange.domain([0, d3.max(this.chartData, function (d) {
-        return d.amount;
-    })]).nice();
+            return d.amount;
+        })]).nice();
     xDomain.unshift("");
 //    xDomain.push(" ");
     this.xRange.domain(xDomain);
@@ -98,10 +98,10 @@ VehicleScatterPlot.prototype.loadData = function () {
             .domain(d3.extent(this.chartData, function (d) {
                 return d.accidents;
             }))
-            .range([2, 15]);
+            .range([3, 15]);
     var totalAccidentsScaleSqrt = d3.scaleSqrt()
-            .domain([2 / Math.PI, 15 / Math.PI])
-            .range([2, 15]);
+            .domain([3 / Math.PI, 15 / Math.PI])
+            .range([3, 15]);
 
     //Grid
     this.g.select(".y.grid")
@@ -122,7 +122,7 @@ VehicleScatterPlot.prototype.loadData = function () {
             .duration(500)
             .call(d3.axisLeft(this.yRange)
                     .tickFormat(d3.format("d"))
-            );
+                    );
     this.g.select(".x.axis")
             .transition()
             .duration(500)
@@ -149,6 +149,19 @@ VehicleScatterPlot.prototype.loadData = function () {
             .attr("cy", function (d) {
                 return self.yRange(d.amount);
             })
+            .on("mouseout", function () {
+                self.tooltip.style("display", "none");
+            })
+            .on("mousemove", function (d) {
+                self.tooltip.style("display", null);
+                console.log("mousemove!!!!");
+                console.log(d);
+                var tooltipX = Math.max((d3.mouse(this)[0] - 30), 0);
+                tooltipX = Math.min(tooltipX, self.domainWidth - 60);
+                var tooltipY = Math.max((d3.mouse(this)[1] - 25), (d3.mouse(this)[1] + 20));
+                self.tooltip.attr("transform", "translate(" + tooltipX + "," + tooltipY + ")");
+                self.tooltip.select("text.label-tooltip-scatter").text(d.accidents);
+            })
             .merge(this.circleSelection)
             .transition()
             .duration(500)
@@ -165,4 +178,25 @@ VehicleScatterPlot.prototype.loadData = function () {
                 return totalAccidentsScaleSqrt(totalAccidentsScaleLog(d.accidents) / Math.PI);
             });
     this.circleSelection.exit().remove();
+
+    self.tooltip = this.g.append("g")
+            .attr("class", "tooltip")
+            .style("opacity", 1)
+            .style("display", "none");
+
+    self.tooltip.append("rect")
+            .attr("width", 60)
+            .attr("height", 20)
+            .attr("fill", "white")
+            .style("opacity", 0.75);
+
+    self.tooltip.append("text")
+            .attr("x", 30)
+            .attr("y", 0)
+            .attr("class", "label-tooltip-scatter")
+            .text("-")
+            .attr("fill", "black")
+            .attr("dy", "1.2em")
+            .style("text-anchor", "middle")
+            .attr("font-weight", "bold");
 }
