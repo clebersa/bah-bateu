@@ -1,5 +1,5 @@
 function VehicleScatterPlot() {
-    this.margin = {top: 10, right: 2, bottom: 15, left: 45};
+    this.margin = {top: 10, right: 10, bottom: 30, left: 10};
     this.chartData = null;
 
     var self = this;
@@ -51,16 +51,15 @@ VehicleScatterPlot.prototype.drawBase = function () {
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    this.xRange = d3.scaleLinear().range([0, this.domainWidth]);
-    this.yRange = d3.scalePoint().range([this.domainHeight, 0]);
+    this.xRange = d3.scalePoint().range([0, this.domainWidth]);
+    this.yRange = d3.scaleLinear().range([this.domainHeight, 0]);
 
     this.g = this.svg.append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     this.g.append("rect")
             .attr("class", "circles")
             .attr("width", this.domainWidth)
-            .attr("height", this.domainHeight)
-            .attr("fill", "#ffffff");
+            .attr("height", this.domainHeight);
 
     //Grid
     this.g.append("g")
@@ -81,19 +80,19 @@ VehicleScatterPlot.prototype.drawBase = function () {
 VehicleScatterPlot.prototype.loadData = function () {
     if (this.chartData === null)
         return;
-    this.xRange.domain([0, d3.max(this.chartData, function (d) {
-            return d.amount;
-        }) + 0.2]);
-    var yDomain = d3.map(this.chartData, function (d) {
-        return d.type;
-    }).keys();
-    yDomain.unshift("");
-    yDomain.push(" ");
-    this.yRange.domain(yDomain);
+    var xDomain = d3.map(this.chartData, function (d) {
+            return d.type;
+        }).keys().reverse();
+    this.yRange.domain([0, d3.max(this.chartData, function (d) {
+        return d.amount;
+    })]).nice();
+    xDomain.unshift("");
+//    xDomain.push(" ");
+    this.xRange.domain(xDomain);
 
     //Scales
     var vehicleTypeScale = d3.scaleOrdinal()
-            .domain(yDomain)
+            .domain(xDomain)
             .range(d3.schemeCategory20);
     var totalAccidentsScaleLog = d3.scaleLog()
             .domain(d3.extent(this.chartData, function (d) {
@@ -121,11 +120,21 @@ VehicleScatterPlot.prototype.loadData = function () {
     this.g.select(".y.axis")
             .transition()
             .duration(500)
-            .call(d3.axisLeft(this.yRange));
+            .call(d3.axisLeft(this.yRange)
+                    .tickFormat(d3.format("d"))
+            );
     this.g.select(".x.axis")
             .transition()
             .duration(500)
             .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]));
+    this.g.select(".x.axis")
+            .selectAll("text")
+            .attr("y", 15)
+            .attr("x", 0)
+            .attr("dy", ".35em")
+            .attr("transform", "rotate(-20)")
+            .style("text-anchor", "end");
+
 
     //Data
     var self = this;
@@ -135,31 +144,25 @@ VehicleScatterPlot.prototype.loadData = function () {
             .attr("class", "dot")
             .attr("r", 0)
             .attr("cx", function (d) {
-                return self.xRange(d.amount);
+                return self.xRange(d.type);
             })
             .attr("cy", function (d) {
-                return self.yRange(d.type);
-            })
-            .style("fill", function (d) {
-                return "gray";
+                return self.yRange(d.amount);
             })
             .merge(this.circleSelection)
             .transition()
             .duration(500)
-            .attr("r", function (d) {
-                return totalAccidentsScaleSqrt(totalAccidentsScaleLog(d.accidents) / Math.PI);
-            })
-            .attr("cx", function (d) {
-                return self.xRange(d.amount);
-            })
-            .attr("cy", function (d) {
-                return self.yRange(d.type);
-            })
             .style("fill", function (d) {
                 return vehicleTypeScale(d.type);
+            })
+            .attr("cx", function (d) {
+                return self.xRange(d.type);
+            })
+            .attr("cy", function (d) {
+                return self.yRange(d.amount);
+            })
+            .attr("r", function (d) {
+                return totalAccidentsScaleSqrt(totalAccidentsScaleLog(d.accidents) / Math.PI);
             });
     this.circleSelection.exit().remove();
 }
-
-var vehicleScatterPlot = new VehicleScatterPlot();
-vehicleScatterPlot.drawBase();
