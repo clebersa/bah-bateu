@@ -328,6 +328,13 @@ AccidentsTimeSerie.prototype.loadData = function () {
             })
             .call(self.zoom);
 
+    self.dotTotalAccidents = self.focusGraphic.append("circle")
+            .attr("r", 3)
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .style("fill", "#e41a1c")
+            .style("display", "none");
+
     self.tooltip = self.focusGraphic.append("g")
             .attr("class", "tooltip")
             .style("opacity", 1)
@@ -354,13 +361,6 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("dy", "1.0em")
             .style("text-anchor", "middle")
             .attr("font-weight", "bold");
-
-    self.dotTotalAccidents = self.focusGraphic.append("circle")
-            .attr("r", 3)
-            .attr("cx", 0)
-            .attr("cy", 0)
-            .style("fill", "#e41a1c")
-            .style("display", "none");
 
     var legend = self.focusGraphic.append("g")
             .attr("font-size", 10)
