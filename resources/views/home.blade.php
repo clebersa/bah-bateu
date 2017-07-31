@@ -8,7 +8,19 @@
 @section('main-content')
 <div class="row">
     <div class="col-lg-12 overviewContainer">
-        <div class="text-center overview"></div>
+        <div class="box box-success box-solid">
+            <div class="box-header">
+                <h3 class="box-title">Time and People Distribution</h3>
+                <div class="box-tools pull-right">
+                </div>
+            </div>
+            <div class="box-body no-padding">
+                <div class="text-center overview"></div>
+            </div>
+            <div class="overlay hidden" id="overlay-overview">
+                <i class="fa fa-refresh fa-spin"></i>
+            </div>
+        </div>
     </div>
 </div>
 <div class="row">

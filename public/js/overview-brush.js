@@ -1,7 +1,7 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 80, right: 0, bottom: 60, left: 45};
-    this.fullRangeMargin = {top: 0, right: 0, bottom: 215, left: 45};
+    this.zoomedRangeMargin = {top: 80, right: 15, bottom: 60, left: 45};
+    this.fullRangeMargin = {top: 10, right: 15, bottom: 205, left: 45};
     this.parseDate = d3.timeParse("%Y-%m-%d");
     this.stackLegendWidth = 120;
     this.data = null;
@@ -31,6 +31,7 @@ function AccidentsTimeSerie() {
 
 AccidentsTimeSerie.prototype.init = function () {
     var self = this;
+    $("#overlay-overview").removeClass("hidden");
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
@@ -51,6 +52,7 @@ AccidentsTimeSerie.prototype.init = function () {
                 record.totalPeople = record.injuried + record.seriouslyInjuried + record.deaths + record.subsequentDeaths;
             });
 
+            $("#overlay-overview").addClass("hidden");
             self.data = result;
             if (self.drawBase()) {
                 self.loadData();

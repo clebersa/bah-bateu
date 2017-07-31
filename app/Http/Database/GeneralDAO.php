@@ -35,8 +35,8 @@ class GeneralDAO {
                 . "		WEEK(MOMENTO) AS `week`, "
                 . "    MIN(DATE(MOMENTO)) AS min_moment, "
                 . "    DATE_ADD(MAX(DATE(MOMENTO)), INTERVAL 1 DAY) AS max_moment "
-//                . "  FROM `accidents` "
-                . "  FROM `accidents` WHERE YEAR(MOMENTO) < 2001 " //TODO: remove filter
+                . "  FROM `accidents` "
+//                . "  FROM `accidents` WHERE YEAR(MOMENTO) < 2001 " //TODO: remove filter
                 . "  GROUP BY "
                 . "    `year`, "
                 . "    `week` "
