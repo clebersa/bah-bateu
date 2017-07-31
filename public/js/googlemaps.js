@@ -6,7 +6,7 @@ function AccidentsMap() {
     this.accidentInfoBoxDefaultTitle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
     this.accidentInfoBoxDefaultBody = "<br/><br/><br/>"
 
-    $("#map").height(600);
+    $("#map").height(550);
 
     var self = this;
     $("#heatMapButton").click(function () {
