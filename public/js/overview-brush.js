@@ -1,9 +1,9 @@
 function AccidentsTimeSerie() {
     this.height = 250;
-    this.zoomedRangeMargin = {top: 75, right: 0, bottom: 55, left: 45};
-    this.fullRangeMargin = {top: 0, right: 0, bottom: 210, left: 45};
+    this.zoomedRangeMargin = {top: 80, right: 0, bottom: 60, left: 45};
+    this.fullRangeMargin = {top: 0, right: 0, bottom: 215, left: 45};
     this.parseDate = d3.timeParse("%Y-%m-%d");
-    this.stackLegendWidth = 115;
+    this.stackLegendWidth = 120;
     this.data = null;
     this.isDomainDefined = false;
     this.stackMap = {injuried: 'Injuried',
@@ -225,11 +225,21 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .thresholds(self.xFullRange.ticks(data.length));
 
     self.focusGraphic.select(".axis.axis--x")
-            .call(self.xAxisZoom);
+            .call(self.xAxisZoom).selectAll("text").attr("font-size", "9pt");
 
+
+    self.focusGraphic.select(".axis.axis--y").select("text.axis-label").remove();
     self.focusGraphic.select(".axis.axis--y")
-            .call(self.yAxisZoom);
-
+            .call(self.yAxisZoom.ticks(7)).selectAll("text").attr("font-size", "9pt");
+self.focusGraphic.select(".axis.axis--y")
+            .append("text")
+            .attr("class", ".axis-label")
+            .attr("fill", "black")
+            .attr("opacity", "1")
+            .attr("text-anchor", "end")
+            .attr("transform", "translate(-30,0)rotate(-90)")
+            .text("Amount")
+            .attr("font-size", "9pt");
     self.redrawStack();
 
     self.focusGraphic.append("path")
@@ -278,7 +288,7 @@ AccidentsTimeSerie.prototype.loadData = function () {
     self.context.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + self.fullRangeHeight + ")")
-            .call(self.xAxisFull);
+            .call(self.xAxisFull).selectAll("text").attr("font-size", "9pt");
 
     self.context.append("g")
             .attr("class", "brush")
@@ -363,14 +373,22 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .attr("font-weight", "bold");
 
     var legend = self.focusGraphic.append("g")
-            .attr("font-size", 10)
             //.attr("text-anchor", "center")
             .selectAll("g")
             .data(Object.keys(self.stackMap))
             .enter().append("g")
             .attr("transform", function (d, i, data) {
-                return "translate(" + ((self.zoomedRangeWidth / 2) + ((i - data.length / 2) * 115)) + ", " + (self.zoomedRangeHeight + 30) + ")";
-            });
+                return "translate(" + ((self.zoomedRangeWidth / 2) + ((i - data.length / 2) * self.stackLegendWidth)) + ", " + (self.zoomedRangeHeight + 30) + ")";
+            })
+            .attr("font-size", "9pt");
+
+    legend.append("rect")
+            .attr("x", -10)
+            .attr("y", -5)
+            .attr("width", (Object.keys(self.stackMap).length / 2) * self.stackLegendWidth - 95)
+            .attr("height", 25)
+            .attr("opacity", "0.75")
+            .attr("fill", "white");
 
     legend.append("rect")
             .attr("x", 0)

@@ -1,5 +1,5 @@
 function VehicleScatterPlot() {
-    this.margin = {top: 10, right: 10, bottom: 20, left: 10};
+    this.margin = {top: 10, right: 10, bottom: 30, left: 10};
     this.chartData = null;
 
     var self = this;
@@ -46,8 +46,13 @@ VehicleScatterPlot.prototype.updateChart = function () {
         success: function (result) {
             self.chartData = result;
             $("#overlay-scatter").addClass("hidden");
+            $("#errorLabelScatter").addClass("hidden");
             self.loadData();
-        }});
+        },
+        error: function (d) {
+            $("#errorLabelScatter").removeClass("hidden");
+        }
+    });
 }
 
 VehicleScatterPlot.prototype.drawBase = function () {
@@ -138,18 +143,30 @@ VehicleScatterPlot.prototype.loadData = function () {
                     );
 
     //Axes
+    //this.g.select(".y.axis").select("text.axis-label").remove();
+    this.g.select(".y.axis").append("text")
+            .attr("class", ".axis-label")
+            .attr("fill", "black")
+            .attr("text-anchor", "end")
+            .attr("transform", "translate("+ (this.margin.left) +","+0+")rotate(-90)")
+            .text("Amount involved per accident");
+    
     this.g.select(".y.axis")
             .transition()
             .duration(500)
             .call(d3.axisLeft(this.yRange)
                     .ticks(this.yRange.domain()[1])
                     .tickFormat(d3.format("d"))
-                    );
+                    )
+            .selectAll("text")
+            .attr("font-size", "9pt");
+    
     this.g.select(".x.axis")
             .transition()
             .duration(500)
             .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]))
             .selectAll("text")
+            .attr("font-size", "9pt")
             .attr("y", 15)
             .attr("x", 0)
             .attr("dy", ".35em")

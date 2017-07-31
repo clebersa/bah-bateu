@@ -50,6 +50,7 @@ AccidentsMap.prototype.retrieveData = function () {
                     new google.maps.LatLng(maxLatitude, maxLongitude)));
             
             $("#overlay-maps").addClass("hidden");
+            $("#errorLabelMaps").addClass("hidden");
             self.loadLayers();
             
             if (self.callbackFunctionName === null) {
@@ -62,6 +63,7 @@ AccidentsMap.prototype.retrieveData = function () {
             console.log("error for google maps");
             console.log(result);
             $("#overlay-maps").addClass("hidden");
+            $("#errorLabelMaps").removeClass("hidden");
         }
     });
 }

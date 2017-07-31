@@ -33,6 +33,9 @@
                     <div class="box-header">
                         <h3 class="box-title">Vehicle Distribution</h3>
                         <div class="box-tools pull-right">
+                            <span class="label bg-red hidden" id="errorLabelScatter">
+                                <i class="fa fa-warning"></i> Unable to load data.
+                            </span>
                             <button type="button" class="btn btn-box-tool" id="clearFilterScatter"><i class="fa fa-close"></i> Clear Filters
                             </button>
                         </div>
@@ -51,6 +54,11 @@
         <div class="box box-success box-solid">
             <div class="box-header">
                 <h3 class="box-title">Geographic Distribution</h3>
+                <div class="box-tools pull-right">
+                    <span class="label bg-red hidden" id="errorLabelMaps">
+                        <i class="fa fa-warning"></i> Unable to load data.
+                    </span>
+                </div>
             </div>
             <div class="box-body no-padding">
                 <div class="floating-panel btn-group text-center">
