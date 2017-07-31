@@ -1,5 +1,5 @@
 function WeekDayTimeHeatmap() {
-    this.margin = {top: 40, right: 0, bottom: 60, left: 25};
+    this.margin = {top: 35, right: 0, bottom: 50, left: 25};
     this.chartData = null;
 
     var self = this;
@@ -9,11 +9,12 @@ function WeekDayTimeHeatmap() {
         }
     });
 
-    $('div .heatmap').height(250);
+    $('div .heatmap').height(210);
 }
 
 WeekDayTimeHeatmap.prototype.updateChart = function () {
     var self = this;
+    $("#overlay-heatmap").removeClass("hidden");
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
@@ -24,6 +25,7 @@ WeekDayTimeHeatmap.prototype.updateChart = function () {
         dataType: 'JSON',
         success: function (result) {
             self.chartData = result;
+            $("#overlay-heatmap").addClass("hidden");
             self.loadData();
         }});
 }
@@ -96,7 +98,8 @@ WeekDayTimeHeatmap.prototype.loadData = function () {
     if (this.chartData === null)
         return;
 
-    const colors = ["#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"]
+    //const colors = ["#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"]
+    const colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
     const colorScale = d3.scaleQuantile()
             .domain(d3.extent(this.chartData, (d) => d.total))
             .range(colors);
@@ -142,7 +145,7 @@ WeekDayTimeHeatmap.prototype.loadData = function () {
             .attr("class", "mono")
             .text((d) => "≥ " + Math.round(d))
             .attr("x", (d, i) => legendWidth * i)
-            .attr("y", this.heightHeatmap + this.gridSizeY);
+            .attr("y", this.heightHeatmap + this.gridSizeY + 5);
 
     legend.exit().remove();
 }

@@ -1,5 +1,5 @@
 function VehicleScatterPlot() {
-    this.margin = {top: 10, right: 10, bottom: 30, left: 10};
+    this.margin = {top: 10, right: 10, bottom: 20, left: 10};
     this.chartData = null;
 
     var self = this;
@@ -10,11 +10,31 @@ function VehicleScatterPlot() {
         }
     });
 
-    $('div .scatter').height(300);
+    $('div .scatter').height(280);
+
+    $("#clearFilterScatter").click(function () {
+        var shouldClear = false;
+        Object.keys(filters.vehicles).forEach(function (v) {
+            Object.keys(filters.vehicles[v]).forEach(function (q) {
+                if (filters.vehicles[v][q]) {
+                    shouldClear = true;
+                    return;
+                }
+            });
+            if (shouldClear) {
+                return;
+            }
+        })
+        if (shouldClear) {
+            filters.vehicles = {};
+            updateCharts();
+        }
+    });
 }
 
 VehicleScatterPlot.prototype.updateChart = function () {
     var self = this;
+    $("#overlay-scatter").removeClass("hidden");
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
@@ -25,6 +45,7 @@ VehicleScatterPlot.prototype.updateChart = function () {
         dataType: 'JSON',
         success: function (result) {
             self.chartData = result;
+            $("#overlay-scatter").addClass("hidden");
             self.loadData();
         }});
 }
@@ -87,7 +108,6 @@ VehicleScatterPlot.prototype.loadData = function () {
             return d.amount;
         })]).nice();
     xDomain.unshift("");
-//    xDomain.push(" ");
     this.xRange.domain(xDomain);
 
     //Scales
@@ -106,6 +126,7 @@ VehicleScatterPlot.prototype.loadData = function () {
     //Grid
     this.g.select(".y.grid")
             .call(d3.axisLeft(this.yRange)
+                    .ticks(this.yRange.domain()[1])
                     .tickSize(-this.domainWidth)
                     .tickFormat("")
                     );
@@ -121,20 +142,19 @@ VehicleScatterPlot.prototype.loadData = function () {
             .transition()
             .duration(500)
             .call(d3.axisLeft(this.yRange)
+                    .ticks(this.yRange.domain()[1])
                     .tickFormat(d3.format("d"))
                     );
     this.g.select(".x.axis")
             .transition()
             .duration(500)
-            .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]));
-    this.g.select(".x.axis")
+            .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]))
             .selectAll("text")
             .attr("y", 15)
             .attr("x", 0)
             .attr("dy", ".35em")
             .attr("transform", "rotate(-20)")
             .style("text-anchor", "end");
-
 
     //Data
     var self = this;
@@ -154,13 +174,21 @@ VehicleScatterPlot.prototype.loadData = function () {
             })
             .on("mousemove", function (d) {
                 self.tooltip.style("display", null);
-                console.log("mousemove!!!!");
-                console.log(d);
                 var tooltipX = Math.max((d3.mouse(this)[0] - 30), 0);
                 tooltipX = Math.min(tooltipX, self.domainWidth - 60);
-                var tooltipY = Math.max((d3.mouse(this)[1] - 25), (d3.mouse(this)[1] + 20));
+                var tooltipY = Math.max((d3.mouse(this)[1] - 25), 20);
+                tooltipY = (tooltipY === 20) ? (20 + d3.mouse(this)[1]) : tooltipY;
                 self.tooltip.attr("transform", "translate(" + tooltipX + "," + tooltipY + ")");
                 self.tooltip.select("text.label-tooltip-scatter").text(d.accidents);
+            })
+            .on("click", function (d) {
+                if (filters.vehicles[d.type] == null) {
+                    filters.vehicles[d.type] = {}
+                }
+                ;
+                filters.vehicles[d.type][d.amount] = !filters.vehicles[d.type][d.amount];
+                updateCharts();
+                self.tooltip.remove();
             })
             .merge(this.circleSelection)
             .transition()
@@ -168,6 +196,15 @@ VehicleScatterPlot.prototype.loadData = function () {
             .style("fill", function (d) {
                 return vehicleTypeScale(d.type);
             })
+            .attr("stroke", function (d) {
+                if (filters.vehicles.hasOwnProperty(d.type)
+                        && filters.vehicles[d.type][d.amount]) {
+                    return "black";
+                } else {
+                    return "none";
+                }
+            })
+            .attr("stroke-width", 2)
             .attr("cx", function (d) {
                 return self.xRange(d.type);
             })
@@ -187,7 +224,7 @@ VehicleScatterPlot.prototype.loadData = function () {
     self.tooltip.append("rect")
             .attr("width", 60)
             .attr("height", 20)
-            .attr("fill", "white")
+            .attr("fill", "#ccc")
             .style("opacity", 0.75);
 
     self.tooltip.append("text")

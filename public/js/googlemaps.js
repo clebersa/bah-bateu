@@ -19,6 +19,7 @@ function AccidentsMap() {
 
 AccidentsMap.prototype.retrieveData = function () {
     var self = this;
+    $("#overlay-maps").removeClass("hidden");
     $.ajax({url: '/bah-bateu/',
         type: 'POST',
         data: {
@@ -47,9 +48,10 @@ AccidentsMap.prototype.retrieveData = function () {
             self.map.fitBounds(new google.maps.LatLngBounds(
                     new google.maps.LatLng(minLatitude, minLongitude),
                     new google.maps.LatLng(maxLatitude, maxLongitude)));
-
+            
+            $("#overlay-maps").addClass("hidden");
             self.loadLayers();
-
+            
             if (self.callbackFunctionName === null) {
                 self.showHeatMap();
             } else {
@@ -59,6 +61,7 @@ AccidentsMap.prototype.retrieveData = function () {
         error: function (result) {
             console.log("error for google maps");
             console.log(result);
+            $("#overlay-maps").addClass("hidden");
         }
     });
 }

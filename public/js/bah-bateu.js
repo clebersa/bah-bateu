@@ -10,9 +10,12 @@ var filters = {
     startDate: null,
     endDate: null,
 
+    //filters from sca
+    vehicles: {},
+    
     //filters from google maps
     latitude: null,
-    longitude: null
+    longitude: null,
 }
 var accidentsTimeSerie = new AccidentsTimeSerie();
 

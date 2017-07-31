@@ -6,6 +6,20 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class GeneralDAO {
+    private $scatterMap = [
+            'Automobile' => 'AUTO',
+            'Taxi' => 'TAXI',
+            'Lotação' => 'LOTACAO',
+            'Urban Bus' => 'ONIBUS_URB',
+            'Other Bus' => 'ONIBUS_INT',
+            'Metropolitan Bus' => 'ONIBUS_MET',
+            'Truck' => 'CAMINHAO',
+            'Motorcycle' => 'MOTO',
+            'Cart' => 'CARROCA',
+            'Bicycle' => 'BICICLETA',
+            'Other' => 'OUTRO'
+        ];
+    
 
     public function getOverviewData() {
         $query = "SELECT "
@@ -21,8 +35,8 @@ class GeneralDAO {
                 . "		WEEK(MOMENTO) AS `week`, "
                 . "    MIN(DATE(MOMENTO)) AS min_moment, "
                 . "    DATE_ADD(MAX(DATE(MOMENTO)), INTERVAL 1 DAY) AS max_moment "
-                . "  FROM `accidents` "
-//                . "  FROM `accidents` WHERE YEAR(MOMENTO) < 2001 " //TODO: remove filter
+//                . "  FROM `accidents` "
+                . "  FROM `accidents` WHERE YEAR(MOMENTO) < 2001 " //TODO: remove filter
                 . "  GROUP BY "
                 . "    `year`, "
                 . "    `week` "
@@ -59,23 +73,14 @@ class GeneralDAO {
     }
 
     public function getScatterPlotData($filters) {
-        $map = [
-            'AUTO' => 'Automobile',
-            'TAXI' => 'Taxi',
-            'LOTACAO' => 'Lotação',
-            'ONIBUS_URB' => 'Urban Bus',
-            'ONIBUS_INT' => 'Other Bus',
-            'ONIBUS_MET' => 'Metropolitan Bus',
-            'CAMINHAO' => 'Truck',
-            'MOTO' => 'Motorcycle',
-            'CARROCA' => 'Cart',
-            'BICICLETA' => 'Bicycle',
-            'OUTRO' => 'Other'
-        ];
-
         $sqlFilter = $this->parseFilters($filters);
-        foreach ($map as $column => $title) {
-            $queries[] = "SELECT '$title' AS 'type', `$column` AS 'amount', count(*) AS 'accidents' FROM `accidents` " . (($sqlFilter == "") ? "WHERE " : $sqlFilter . "AND ") . "`$column` > 0 GROUP BY `$column`";
+        foreach ($this->scatterMap as $label => $column) {
+            $queries[] = "SELECT '$label' AS 'type', "
+                    . "  `$column` AS 'amount', "
+                    . "  count(*) AS 'accidents' "
+                    . "FROM `accidents` " 
+                    . (($sqlFilter == "") ? "WHERE " : $sqlFilter . "AND ") . "`$column` > 0 "
+                    . "GROUP BY `$column`";
         }
         $query = implode("\nUNION\n", $queries) . "\nORDER BY `type` DESC, `amount` ASC";
         Log::debug($query);
@@ -133,6 +138,19 @@ class GeneralDAO {
                 }
                 if ($key == 'longitude') {
                     $sqlFilters[] = "`accidents`.`LONGITUDE` = '" . $value . "'";
+                }
+                if ($key == 'vehicles') {
+                    foreach($value as $type => $amount){
+                        $vehicleFilter = [];
+                        foreach($amount as $quantity => $shouldFilter){
+                            if($shouldFilter){
+                                $vehicleFilter[] = $this->scatterMap[$type] . " = " . $quantity;
+                            }
+                        }
+                        if(count($vehicleFilter) != 0){
+                            $sqlFilters[] = "(" . implode(" OR ", $vehicleFilter) . ")";
+                        }
+                    }
                 }
             }
         }
