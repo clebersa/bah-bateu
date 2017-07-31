@@ -21,7 +21,8 @@ class GeneralDAO {
                 . "		WEEK(MOMENTO) AS `week`, "
                 . "    MIN(DATE(MOMENTO)) AS min_moment, "
                 . "    DATE_ADD(MAX(DATE(MOMENTO)), INTERVAL 1 DAY) AS max_moment "
-                . "  FROM `accidents` WHERE YEAR(MOMENTO) < 2001 " //TODO: remove filter
+//                . "  FROM `accidents` "
+                . "  FROM `accidents` WHERE YEAR(MOMENTO) > 2013 " //TODO: remove filter
                 . "  GROUP BY "
                 . "    `year`, "
                 . "    `week` "
@@ -57,7 +58,7 @@ class GeneralDAO {
         return $data;
     }
 
-    public function getScatterPlotData() {
+    public function getScatterPlotData($filters) {
         $map = [
             'AUTO' => 'Automobile',
             'TAXI' => 'Taxi',
@@ -71,8 +72,10 @@ class GeneralDAO {
             'BICICLETA' => 'Bicycle',
             'OUTRO' => 'Other'
         ];
+
+        $sqlFilter = $this->parseFilters($filters);
         foreach ($map as $column => $title) {
-            $queries[] = "SELECT '$title' AS 'type', `$column` AS 'amount', count(*) AS 'accidents' FROM `accidents` WHERE `$column` > 0 GROUP BY `$column`";
+            $queries[] = "SELECT '$title' AS 'type', `$column` AS 'amount', count(*) AS 'accidents' FROM `accidents` " . (($sqlFilter == "") ? "WHERE " : $sqlFilter . "AND ") . "`$column` > 0 GROUP BY `$column`";
         }
         $query = implode("\nUNION\n", $queries) . "\nORDER BY `type` DESC, `amount` ASC";
         Log::debug($query);

@@ -57,9 +57,24 @@ VehicleScatterPlot.prototype.drawBase = function () {
     this.g = this.svg.append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     this.g.append("rect")
+            .attr("class", "circles")
             .attr("width", this.domainWidth)
             .attr("height", this.domainHeight)
             .attr("fill", "#ffffff");
+
+    //Grid
+    this.g.append("g")
+            .attr("class", "x grid");
+    this.g.append("g")
+            .attr("class", "y grid");
+
+    //Axis
+    this.g.append("g")
+            .attr("class", "y axis");
+    this.g.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + this.domainHeight + ")");
+
     return true;
 }
 
@@ -90,14 +105,12 @@ VehicleScatterPlot.prototype.loadData = function () {
             .range([2, 15]);
 
     //Grid
-    this.g.append("g")
-            .attr("class", "grid")
+    this.g.select(".y.grid")
             .call(d3.axisLeft(this.yRange)
                     .tickSize(-this.domainWidth)
                     .tickFormat("")
                     );
-    this.g.append("g")
-            .attr("class", "grid")
+    this.g.select(".x.grid")
             .call(d3.axisBottom(this.xRange)
                     .ticks(this.xRange.domain()[1])
                     .tickSize(this.domainHeight)
@@ -105,20 +118,34 @@ VehicleScatterPlot.prototype.loadData = function () {
                     );
 
     //Axes
-    this.g.append("g")
-            .attr("class", "y axis")
+    this.g.select(".y.axis")
+            .transition()
+            .duration(500)
             .call(d3.axisLeft(this.yRange));
-    this.g.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + this.domainHeight + ")")
+    this.g.select(".x.axis")
+            .transition()
+            .duration(500)
             .call(d3.axisBottom(this.xRange).ticks(this.xRange.domain()[1]));
 
     //Data
     var self = this;
-    this.g.selectAll("circle")
-            .data(this.chartData)
-            .enter().append("circle")
+    this.circleSelection = this.g.selectAll("circle")
+            .data(this.chartData);
+    this.circleSelection.enter().append("circle")
             .attr("class", "dot")
+            .attr("r", 0)
+            .attr("cx", function (d) {
+                return self.xRange(d.amount);
+            })
+            .attr("cy", function (d) {
+                return self.yRange(d.type);
+            })
+            .style("fill", function (d) {
+                return "gray";
+            })
+            .merge(this.circleSelection)
+            .transition()
+            .duration(500)
             .attr("r", function (d) {
                 return totalAccidentsScaleSqrt(totalAccidentsScaleLog(d.accidents) / Math.PI);
             })
@@ -131,6 +158,7 @@ VehicleScatterPlot.prototype.loadData = function () {
             .style("fill", function (d) {
                 return vehicleTypeScale(d.type);
             });
+    this.circleSelection.exit().remove();
 }
 
 var vehicleScatterPlot = new VehicleScatterPlot();

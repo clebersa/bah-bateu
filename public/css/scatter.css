@@ -2,6 +2,10 @@
     fill-opacity: .75;
 }
 
+.circles {
+    fill:none;
+}
+
 .line {
     fill: none;
     stroke: steelblue;
