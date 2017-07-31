@@ -64,7 +64,7 @@ class GeneralDAO {
             'TAXI' => 'Taxi',
             'LOTACAO' => 'Lotação',
             'ONIBUS_URB' => 'Urban Bus',
-            'ONIBUS_INT' => 'Intercity Bus',
+            'ONIBUS_INT' => 'Other Bus',
             'ONIBUS_MET' => 'Metropolitan Bus',
             'CAMINHAO' => 'Truck',
             'MOTO' => 'Motorcycle',
