@@ -138,6 +138,7 @@ AccidentsTimeSerie.prototype.drawBase = function () {
                 }
 
                 if (shouldUpdate) {
+//                    updateCharts([VIEWS.MAPS, VIEWS.DAY_HEATMAP, VIEWS.VEHICLE]);
                     updateCharts();
                 }
                 self.redrawStack();
@@ -180,6 +181,14 @@ AccidentsTimeSerie.prototype.drawBase = function () {
     this.context = this.svg.append("g")
             .attr("class", "context")
             .attr("transform", "translate(" + this.fullRangeMargin.left + "," + this.fullRangeMargin.top + ")");
+
+    self.focusGraphic.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + self.zoomedRangeHeight + ")");
+
+    self.focusGraphic.append("g")
+            .attr("class", "axis axis--y");
+
     return true;
 }
 
@@ -215,13 +224,10 @@ AccidentsTimeSerie.prototype.loadData = function () {
             .domain(self.xFullRange.domain())
             .thresholds(self.xFullRange.ticks(data.length));
 
-    self.focusGraphic.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + self.zoomedRangeHeight + ")")
+    self.focusGraphic.select(".axis.axis--x")
             .call(self.xAxisZoom);
 
-    self.focusGraphic.append("g")
-            .attr("class", "axis axis--y")
+    self.focusGraphic.select(".axis.axis--y")
             .call(self.yAxisZoom);
 
     self.redrawStack();
@@ -384,19 +390,24 @@ AccidentsTimeSerie.prototype.loadData = function () {
 
 AccidentsTimeSerie.prototype.redrawStack = function () {
     var self = this;
-    self.focusGraphic.selectAll(".serie").remove();
-    self.focusGraphic.selectAll(".serie")
-            .data(self.stack(self.data))
-            .enter().append("g")
+
+    var stacksSelection = self.focusGraphic.selectAll(".serie")
+            .data(self.stack(self.data));
+    stacksSelection.enter().append("g")
+            .merge(stacksSelection)
             .attr("class", "serie")
             .attr("fill", function (d) {
                 return self.colorScale(d.key);
-            })
-            .selectAll("rect")
+            });
+    stacksSelection.exit().remove();
+
+    var stackSelection = stacksSelection.selectAll("rect")
             .data(function (d) {
                 return d;
-            })
-            .enter().append("rect")
+            });
+
+    stackSelection.enter().append("rect")
+            .merge(stackSelection)
             .attr("x", function (d) {
                 return self.xZoomRange(d.data.min_moment);
             })
@@ -409,4 +420,5 @@ AccidentsTimeSerie.prototype.redrawStack = function () {
             .attr("width", function (d) {
                 return (self.xZoomRange(d.data.max_moment) - self.xZoomRange(d.data.min_moment)) * 0.95;
             });
+    stackSelection.exit().remove();
 }
