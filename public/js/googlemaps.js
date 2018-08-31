@@ -37,10 +37,6 @@ AccidentsMap.prototype.retrieveData = function () {
 
             if(result.length === 0){
                 console.log('No points to load.');
-                var maxLatitude = 0;
-                var minLatitude = 0;
-                var maxLongitude = 0;
-                var minLongitude = 0;
             } else {
                 var maxLatitude = self.accidentsLocations[0].latitude;
                 var minLatitude = maxLatitude;
