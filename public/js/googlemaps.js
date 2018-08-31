@@ -31,24 +31,43 @@ AccidentsMap.prototype.retrieveData = function () {
         success: function (result) {
             console.log("success for google maps");
             self.accidentsLocations = result;
-            var maxLatitude = Math.max.apply(Math, self.accidentsLocations.map(function (coordinate) {
-                return coordinate.latitude;
-            }));
-            var minLatitude = Math.min.apply(Math, self.accidentsLocations.map(function (coordinate) {
-                return coordinate.latitude;
-            }));
 
-            var maxLongitude = Math.max.apply(Math, self.accidentsLocations.map(function (coordinate) {
-                return coordinate.longitude;
-            }));
-            var minLongitude = Math.min.apply(Math, self.accidentsLocations.map(function (coordinate) {
-                return coordinate.longitude;
-            }));
+            var chunkSize = 50000;
+            var subArray = [];
 
-            self.map.fitBounds(new google.maps.LatLngBounds(
-                    new google.maps.LatLng(minLatitude, minLongitude),
-                    new google.maps.LatLng(maxLatitude, maxLongitude)));
-            
+            if(result.length !== 0){
+                console.log('No points to load.');
+                var maxLatitude = 0;
+                var minLatitude = 0;
+                var maxLongitude = 0;
+                var minLongitude = 0;
+            } else {
+                var maxLatitude = self.accidentsLocations[0].latitude;
+                var minLatitude = maxLatitude;
+                var maxLongitude = self.accidentsLocations[0].longitude;
+                var minLongitude = maxLongitude;
+
+                for (var i = 0; i <= self.accidentsLocations.length; i += chunkSize) {
+                    subArray = self.accidentsLocations.slice(i, i+chunkSize);
+                    maxLatitude = Math.max(maxLatitude, Math.max.apply(Math, subArray.map(function (coordinate) {
+                        return coordinate.latitude;
+                    })));
+                    minLatitude = Math.min(minLatitude, Math.min.apply(Math, subArray.map(function (coordinate) {
+                        return coordinate.latitude;
+                    })));
+                    maxLongitude = Math.max(maxLongitude, Math.max.apply(Math, subArray.map(function (coordinate) {
+                        return coordinate.longitude;
+                    })));
+                    minLongitude = Math.min(minLongitude, Math.min.apply(Math, subArray.map(function (coordinate) {
+                        return coordinate.longitude;
+                    })));
+                }
+
+                self.map.fitBounds(new google.maps.LatLngBounds(
+                        new google.maps.LatLng(minLatitude, minLongitude),
+                        new google.maps.LatLng(maxLatitude, maxLongitude)));
+            }
+
             $("#overlay-maps").addClass("hidden");
             $("#errorLabelMaps").addClass("hidden");
             self.loadLayers();
