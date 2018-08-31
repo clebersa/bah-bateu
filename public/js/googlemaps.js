@@ -35,7 +35,7 @@ AccidentsMap.prototype.retrieveData = function () {
             var chunkSize = 50000;
             var subArray = [];
 
-            if(result.length !== 0){
+            if(result.length === 0){
                 console.log('No points to load.');
                 var maxLatitude = 0;
                 var minLatitude = 0;
