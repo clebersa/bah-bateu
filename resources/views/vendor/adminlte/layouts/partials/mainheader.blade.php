@@ -26,7 +26,12 @@
 
         <div class="container">
             <div class="navbar-header">
-              <a href="{{ url('/home') }}" class="navbar-brand"><b>bah-bateu</b></a>
+              <a href="{{ url('/home') }}">
+                <img src="img/logo-b-64px.png" class="pull-left" style="width:40px;margin-top:5px;margin-right:15px">
+                <div class="navbar-brand">
+                  <b>bah-bateu</b>
+                </div>
+              </a>
               <!-- <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
                 <i class="fa fa-bars"></i>
               </button> -->
