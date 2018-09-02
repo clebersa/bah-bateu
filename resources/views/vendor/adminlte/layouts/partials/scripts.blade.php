@@ -12,8 +12,7 @@
 <script src="{{ url ('/js/heatmap.js') }}" type="text/javascript"></script>
 <script src="{{ url ('/js/scatter.js') }}" type="text/javascript"></script>
 <script src="{{ url ('/js/googlemaps.js') }}" type="text/javascript"></script>
-<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
-</script>
+<script src="{{ url ('/js/markerclusterer.js') }}" type="text/javascript"></script>
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCeltywxFHg7y0adXIu0X9fqjjbmkmVEck&libraries=visualization&callback=accidentsMap.initMap">
 </script>

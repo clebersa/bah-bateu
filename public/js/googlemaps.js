@@ -202,7 +202,7 @@ AccidentsMap.prototype.loadLayers = function () {
     if (this.markerCluster == null) {
         // Add a marker clusterer to manage the markers.
         this.markerCluster = new MarkerClusterer(this.map, this.markers,
-                {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+                {imagePath: 'img/maps/'});
         this.markerCluster.setMaxZoom(20);
     }
     this.markerCluster.clearMarkers();
