@@ -73,9 +73,9 @@
                 </div>
             </div>
             <div class="box-body no-padding">
-                <div class="floating-panel btn-group text-center">
-                    <button id="pointsButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;">Points</button>
-                    <button id="heatMapButton" type="button" class="btn btn-sm btn-default" style="background-color: white; font-size: 11px;">Heatmap</button>
+                <div class="floating-panel btn-group text-center" style="margin-right: -5px;">
+                    <button id="pointsButton" type="button" class="btn btn-success btn-lg" data-toggle="tooltip" title="Points"><i class="fa fa-map-marker"></i></button>
+                    <button id="heatMapButton" type="button" class="btn btn-success btn-lg" data-toggle="tooltip" title="Heatmap"><i class="fa fa-thermometer"></i></button>
                 </div>
                 <div id="map"></div>
             </div>

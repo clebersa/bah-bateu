@@ -89,7 +89,9 @@ AccidentsMap.prototype.showHeatMap = function () {
         this.retrieveData();
     } else {
         $("#pointsButton").removeClass("text-bold");
+        $("#pointsButton").removeClass("active");
         $("#heatMapButton").addClass("text-bold");
+        $("#heatMapButton").addClass("active");
         this.markerCluster.clearMarkers();
         this.heatMapLayer.setMap(this.map);
     }
@@ -101,7 +103,9 @@ AccidentsMap.prototype.showPoints = function () {
         this.retrieveData();
     } else {
         $("#heatMapButton").removeClass("text-bold");
+        $("#heatMapButton").removeClass("active");
         $("#pointsButton").addClass("text-bold");
+        $("#pointsButton").addClass("active");
         this.heatMapLayer.setMap(null);
         if (this.markerCluster.getMarkers().length === 0) {
             this.markerCluster.addMarkers(this.markers);
@@ -115,7 +119,10 @@ AccidentsMap.prototype.initMap = function () {
     this.map = new google.maps.Map(document.getElementById('map'), {
         zoom: 11,
         center: {lat: -30.033056, lng: -51.23},
-        mapTypeId: google.maps.MapTypeId.ROADMAP
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        fullscreenControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_BOTTOM
+        }
     });
 
     var infoWindowBaseContent =
