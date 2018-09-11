@@ -13,14 +13,13 @@ const { mix } = require('laravel-mix');
 
 mix.js('resources/assets/js/app.js', 'public/js')
    .sass('resources/assets/sass/app.scss', 'public/css')
-   .less('node_modules/bootstrap-less/bootstrap/bootstrap.less', 'public/css/bootstrap.css', {rootpath:"/bah-bateu/fonts/"})
-   .less('node_modules/font-awesome/less/font-awesome.less', 'public/css/font-awesome.css', {rootpath:"/bah-bateu/fonts/"})
+   .less('node_modules/bootstrap-less/bootstrap/bootstrap.less', 'public/css/bootstrap.css', {rootpath:"/bah-bateu/webfonts/"})
    .less('resources/assets/less/adminlte-app.less','public/css/adminlte-app.css')
    .less('node_modules/toastr/toastr.less','public/css/toastr.css')
    .combine([
         'url(https://fonts.googleapis.com/css?family=Raleway:300,400,600)',
        'public/css/bootstrap.css',
-       'public/css/font-awesome.css',
+       'node_modules/@fortawesome/fontawesome-free/css/all.css',
        'node_modules/admin-lte/dist/css/skins/_all-skins.css',
        'public/css/adminlte-app.css',
        'node_modules/icheck/skins/square/blue.css',
@@ -30,9 +29,9 @@ mix.js('resources/assets/js/app.js', 'public/js')
    .copy('resources/assets/img/*.*','public/img')
    //VENDOR RESOURCES
    .copy('node_modules/@google/markerclusterer/src/','public/js')
-   .copy('node_modules/font-awesome/fonts/','public/fonts/')
-   .copy('node_modules/ionicons/dist/fonts/*.*','public/fonts/')
-   .copy('node_modules/admin-lte/bootstrap/fonts/*.*','public/fonts/bootstrap')
+   .copy('node_modules/@fortawesome/fontawesome-free/webfonts/','public/webfonts/')
+   .copy('node_modules/ionicons/dist/fonts/*.*','public/webfonts/')
+   .copy('node_modules/admin-lte/bootstrap/fonts/*.*','public/webfonts/bootstrap')
    .copy('node_modules/admin-lte/dist/css/skins/*.*','public/css/skins')
    .copy('node_modules/admin-lte/dist/img','public/img')
    .copy('node_modules/admin-lte/plugins','public/plugins')
