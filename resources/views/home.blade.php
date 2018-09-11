@@ -104,11 +104,14 @@
                 <b>bah-bateu</b> is an information visualization tool for traffic accidents in Porto Alegre (RS, Brazil). The traffic data was downloaded from the <a href="http://www.datapoa.com.br/dataset/acidentes-de-transito" target="_blank">datapoa</a> portal and cleaned in order to be correctly processed. The source code is available on <a href="https://github.com/clebersa/bah-bateu" target="_blank"></i>GitHub</a> and is maintained by <a target="_blank" href="https://github.com/clebersa">Cleber de Souza Alcântara</a>.
             </p>
             <center>
-                <a class="btn btn-warning" href="https://github.com/clebersa/bah-bateu/issues/new" target="_blank"><i class="fas fa-exclamation-triangle"></i> Report a Problem</a>
+                
             </center>
         </div>
-        <!--<div class="modal-footer">
-        </div>-->
+        <div class="modal-footer">
+            <div class="pull-left">
+                <a class="text-yellow" href="https://github.com/clebersa/bah-bateu/issues/new" target="_blank"><i class="fas fa-exclamation-triangle"></i> Report a Problem</a>
+            </div>
+        </div>
     </div>
   </div>
 </div>
